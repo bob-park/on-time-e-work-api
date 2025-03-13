@@ -88,6 +88,12 @@ malgn:
     enabled: on
     host: ${notification_host:http://localhost:8080}
 
+## e-work
+e-work:
+  user:
+    cron:
+      generate-users-leave-days: ${generate_users_leave_days_cron:0 5 0 1 1 *}
+
 ## logging
 logging:
   charset:

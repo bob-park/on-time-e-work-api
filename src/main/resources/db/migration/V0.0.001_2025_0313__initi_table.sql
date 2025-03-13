@@ -16,7 +16,7 @@ create table leave_days_policies
 (
     id                 bigserial               not null primary key,
     continuous_years   int                     not null,
-    total_leaves_days  int       default 0     not null,
+    total_leave_days  int       default 0     not null,
     created_date       timestamp default now() not null,
     created_by         varchar(200)            not null,
     last_modified_date timestamp,
