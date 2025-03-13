@@ -1,0 +1,91 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.malgn'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+ext {
+    malgnStarterVersion = "1.0.2-RC2-2025.01.26"
+
+    springCloudVersion = '2024.0.0'
+    springCloudNetflixVersion = '4.2.0'
+
+    queryDslVersion = "5.0.0"
+    lombokVersion = "1.18.36"
+}
+
+
+repositories {
+    mavenCentral()
+
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/malgn/dependency-repository")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_GRADLE_USERNAME")
+            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_GRADLE_ACCESS_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    // malgn spring boot starter
+    implementation "com.malgn:malgn-spring-boot-starter:${malgnStarterVersion}"
+
+    // spring boot
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // spring security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
+    // spring cloud bootstrap
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
+    implementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:${springCloudNetflixVersion}"
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
+    // jdbc
+    implementation 'org.postgresql:postgresql:42.7.3'
+
+    // p6spy
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.2'
+
+    // lombok
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // querydsl
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+
+    implementation("com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta")
+    annotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jakarta")
+    testAnnotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jakarta")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

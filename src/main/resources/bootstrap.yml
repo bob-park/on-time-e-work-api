@@ -1,0 +1,5 @@
+spring:
+  cloud:
+    config:
+      uri: ${config_server_url}
+      name: on-time-e-work-api
