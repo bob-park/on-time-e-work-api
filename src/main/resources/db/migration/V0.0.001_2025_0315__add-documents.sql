@@ -41,3 +41,19 @@ create table documents_vacations
 
     foreign key (id) references documents (id)
 )
+
+-- 업무 일정
+create table works_schedules
+(
+    id                 bigserial               not null primary key,
+    contents           varchar(50)             not null,
+    description        text,
+    start_date         date                    not null,
+    end_date           date                    not null,
+    is_repeated        bool      default false not null,
+    is_closed          bool      default false not null,
+    created_date       timestamp default now() not null,
+    created_by         varchar(200)            not null,
+    last_modified_date timestamp,
+    last_modified_by   varchar(200)
+)
