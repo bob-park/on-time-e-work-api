@@ -60,4 +60,19 @@ public class WorkSchedule extends BaseEntity<Long> {
         this.isRepeated = defaultIfNull(isRepeated, false);
         this.isClosed = defaultIfNull(isClosed, false);
     }
+
+    /*
+     * 편의 메서드
+     */
+
+    /*
+     * custom getter
+     */
+    public boolean isRepeated() {
+        return Boolean.TRUE.equals(isRepeated);
+    }
+
+    public boolean isClosed() {
+        return Boolean.TRUE.equals(isClosed);
+    }
 }

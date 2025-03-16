@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.*;
 import static com.malgn.domain.document.model.v1.VacationDocumentV1Response.*;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.temporal.ChronoField;
@@ -18,17 +17,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.common.base.Preconditions;
-
+import com.malgn.common.exception.NotFoundException;
+import com.malgn.common.exception.NotSupportException;
 import com.malgn.domain.document.entity.VacationDocument;
+import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.model.CreateVacationDocumentRequest;
 import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
-import com.malgn.domain.document.model.v1.VacationDocumentV1Response;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.document.service.VacationDocumentService;
+import com.malgn.domain.user.entity.UserLeaveEntry;
 import com.malgn.domain.user.feign.UserFeignClient;
 import com.malgn.domain.user.model.UserResponse;
+import com.malgn.domain.user.repository.UserLeaveEntryRepository;
+import com.malgn.domain.work.schedule.entity.WorkSchedule;
+import com.malgn.domain.work.schedule.repository.WorkScheduleRepository;
 import com.malgn.utils.AuthUtils;
 
 @Slf4j
@@ -43,6 +46,8 @@ public class VacationDocumentV1Service implements VacationDocumentService {
     private final UserFeignClient userClient;
 
     private final VacationDocumentRepository documentRepository;
+    private final UserLeaveEntryRepository userLeaveEntryRepository;
+    private final WorkScheduleRepository workScheduleRepository;
 
     @Transactional
     @Override
@@ -57,18 +62,26 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
         checkArgument(StringUtils.equals(currentUserId, user.userId()), "not match user and account.");
 
+        BigDecimal usedDays =
+            calculateUsedDate(
+                createV1Request.startDate(),
+                createV1Request.endDate(),
+                createV1Request.vacationSubType() != null);
+
+        checkUserLeaveEntry(
+            createV1Request.vacationType(),
+            createV1Request.userUniqueId(),
+            createV1Request.startDate().getYear(),
+            usedDays);
+
         VacationDocument createdDocument =
             VacationDocument.builder()
-                .userUniqueId(createRequest.userUniqueId())
+                .userUniqueId(createV1Request.userUniqueId())
                 .vacationType(createV1Request.vacationType())
                 .vacationSubType(createV1Request.vacationSubType())
                 .startDate(createV1Request.startDate())
                 .endDate(createV1Request.endDate())
-                .usedDays(
-                    calculateUsedDate(
-                        createV1Request.startDate(),
-                        createV1Request.endDate(),
-                        createV1Request.vacationSubType() != null))
+                .usedDays(usedDays)
                 .reason(createV1Request.reason())
                 .build();
 
@@ -89,9 +102,15 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
         int days = Period.between(startDate, endDate).getDays();
 
+        List<WorkSchedule> holidays = workScheduleRepository.getAllClosedDays();
+
         for (int i = 0; i <= days; i++) {
 
             LocalDate tempDate = startDate.plusDays(i);
+
+            if (isHoliday(holidays, tempDate)) {
+                continue;
+            }
 
             switch (tempDate.getDayOfWeek()) {
                 case FRIDAY -> {
@@ -118,4 +137,51 @@ public class VacationDocumentV1Service implements VacationDocumentService {
         return result;
     }
 
+    private void checkUserLeaveEntry(VacationType vacationType, String userUniqueId, int year, BigDecimal usedDays) {
+
+        UserLeaveEntry userLeaveEntry =
+            userLeaveEntryRepository.getLeaveEntry(userUniqueId, year)
+                .orElseThrow(() -> new NotFoundException("userUniqueId: " + userUniqueId));
+
+        BigDecimal availableDays = null;
+
+        switch (vacationType) {
+            case GENERAL -> availableDays = userLeaveEntry.availableDays();
+            case COMPENSATORY -> availableDays = userLeaveEntry.availableCompDays();
+            default -> throw new NotSupportException(vacationType.name());
+        }
+
+        checkArgument(availableDays.compareTo(usedDays) >= 0, "Please check your remaining leave days.");
+    }
+
+    private boolean isHoliday(List<WorkSchedule> holidays, LocalDate date) {
+        for (WorkSchedule holiday : holidays) {
+
+            LocalDate startDate = holiday.getStartDate();
+            LocalDate endDate = holiday.getEndDate();
+
+            if (holiday.isRepeated()) {
+                // 반복인 경우 year 뺴고 계산하기
+                startDate =
+                    LocalDate.of(
+                        date.getYear(),
+                        holiday.getStartDate().getMonth(),
+                        holiday.getStartDate().getDayOfMonth());
+
+                endDate =
+                    LocalDate.of(
+                        date.getYear(),
+                        holiday.getEndDate().getMonth(),
+                        holiday.getEndDate().getDayOfMonth());
+
+            }
+
+            if (startDate.compareTo(date) <= 0 && endDate.compareTo(date) >= 0) {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
 }

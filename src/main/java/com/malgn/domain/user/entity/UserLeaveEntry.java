@@ -41,7 +41,8 @@ public class UserLeaveEntry extends BaseTimeEntity<Long> {
     private BigDecimal usedCompLeaveDays;
 
     @Builder
-    private UserLeaveEntry(Long id, String userUniqueId, Integer year, BigDecimal totalLeaveDays, BigDecimal usedLeaveDays,
+    private UserLeaveEntry(Long id, String userUniqueId, Integer year, BigDecimal totalLeaveDays,
+        BigDecimal usedLeaveDays,
         BigDecimal totalCompLeaveDays, BigDecimal usedCompLeaveDays) {
 
         checkArgument(StringUtils.isNotBlank(userUniqueId), "userId must be provided.");
@@ -55,5 +56,16 @@ public class UserLeaveEntry extends BaseTimeEntity<Long> {
         this.usedLeaveDays = defaultIfNull(usedLeaveDays, BigDecimal.ZERO);
         this.totalCompLeaveDays = defaultIfNull(totalCompLeaveDays, BigDecimal.ZERO);
         this.usedCompLeaveDays = defaultIfNull(usedCompLeaveDays, BigDecimal.ZERO);
+    }
+
+    /*
+     * 편의 메서드
+     */
+    public BigDecimal availableDays() {
+        return getTotalLeaveDays().subtract(getUsedLeaveDays());
+    }
+
+    public BigDecimal availableCompDays() {
+        return getTotalCompLeaveDays().subtract(getUsedCompLeaveDays());
     }
 }
