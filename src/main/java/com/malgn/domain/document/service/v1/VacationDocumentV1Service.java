@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.NotSupportException;
+import com.malgn.common.exception.ServiceRuntimeException;
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.model.CreateVacationDocumentRequest;
@@ -101,6 +102,9 @@ public class VacationDocumentV1Service implements VacationDocumentService {
         if (createV1Request.vacationType() == VacationType.COMPENSATORY) {
             checkArgument(!createV1Request.compLeaveEntryIds().isEmpty(), "compLeaveEntryIds must be provided.");
 
+            // 보상 휴가 일수 확인
+            BigDecimal tempUsedDays = usedDays.subtract(BigDecimal.ZERO);
+
             for (Long compLeaveEntryId : createV1Request.compLeaveEntryIds()) {
                 UserCompLeaveEntry userCompLeaveEntry =
                     userCompLeaveEntryRepository.getUserEntry(compLeaveEntryId, createV1Request.userUniqueId())
@@ -115,7 +119,10 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
                 log.debug("used user vacation used comp leave entry id {}", compLeaveEntryId);
 
+                tempUsedDays = tempUsedDays.subtract(userCompLeaveEntry.availableDays());
             }
+
+            checkArgument(tempUsedDays.compareTo(BigDecimal.ZERO) <= 0, "invalid compensatory leave count..");
         }
 
         return from(createdDocument);
