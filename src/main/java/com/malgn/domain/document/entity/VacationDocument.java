@@ -3,11 +3,9 @@ package com.malgn.domain.document.entity;
 import static com.google.common.base.Preconditions.*;
 import static org.apache.commons.lang3.ObjectUtils.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
-import jakarta.persistence.Convert;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,11 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Type;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
-
-import com.malgn.domain.document.entity.converter.LongIdArrayConverter;
 import com.malgn.domain.document.entity.type.DocumentStatus;
 import com.malgn.domain.document.entity.type.DocumentType;
 import com.malgn.domain.document.entity.type.VacationSubType;
@@ -47,18 +41,14 @@ public class VacationDocument extends Document {
 
     private LocalDate startDate;
     private LocalDate endDate;
-    private Integer usedDays;
+    private BigDecimal usedDays;
 
     private String reason;
-
-    @Type(JsonType.class)
-    @Convert(converter = LongIdArrayConverter.class)
-    private List<Long> usedCompLeaveIds = new ArrayList<>();
 
     @Builder
     private VacationDocument(Long id, DocumentStatus status, String writerId,
         VacationType vacationType, VacationSubType vacationSubType, LocalDate startDate, LocalDate endDate,
-        Integer usedDays, String reason, List<Long> usedCompLeaveIds) {
+        BigDecimal usedDays, String reason) {
 
         super(id, DocumentType.VACATION, status, writerId);
 
@@ -67,18 +57,12 @@ public class VacationDocument extends Document {
         checkArgument(isNotEmpty(endDate), "endDate must be provided.");
         checkArgument(StringUtils.isNotBlank(reason), "reason must be provided.");
 
-        // compensatory leave 인 경우 유효성 체크
-        if (vacationType == VacationType.COMPENSATORY) {
-            checkArgument(usedCompLeaveIds != null && !usedCompLeaveIds.isEmpty(),
-                "usedCompLeaveIds must be provided.");
-        }
-
         this.vacationType = vacationType;
         this.vacationSubType = vacationSubType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.usedDays = usedDays;
         this.reason = reason;
-        this.usedCompLeaveIds = defaultIfNull(usedCompLeaveIds, List.of());
     }
+
 }

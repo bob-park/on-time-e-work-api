@@ -35,7 +35,7 @@ create table documents_vacations
     vacation_sub_type   varchar(50),
     start_date          date              not null,
     end_date            date              not null,
-    used_days           int               not null,
+    used_days           numeric(3, 1)     not null,
     reason              varchar(500)      not null,
     used_comp_leave_ids json default '[]' not null,
 
