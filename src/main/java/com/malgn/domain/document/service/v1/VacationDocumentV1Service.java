@@ -2,6 +2,7 @@ package com.malgn.domain.document.service.v1;
 
 import static com.google.common.base.Preconditions.*;
 import static com.malgn.domain.document.model.v1.VacationDocumentV1Response.*;
+import static org.apache.commons.lang3.ObjectUtils.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,10 +27,14 @@ import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.document.service.VacationDocumentService;
+import com.malgn.domain.user.entity.UserCompLeaveEntry;
 import com.malgn.domain.user.entity.UserLeaveEntry;
+import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
 import com.malgn.domain.user.feign.UserFeignClient;
 import com.malgn.domain.user.model.UserResponse;
+import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
+import com.malgn.domain.user.repository.UserVacationUsedCompLeaveRepository;
 import com.malgn.domain.work.schedule.entity.WorkSchedule;
 import com.malgn.domain.work.schedule.repository.WorkScheduleRepository;
 import com.malgn.utils.AuthUtils;
@@ -46,8 +51,10 @@ public class VacationDocumentV1Service implements VacationDocumentService {
     private final UserFeignClient userClient;
 
     private final VacationDocumentRepository documentRepository;
-    private final UserLeaveEntryRepository userLeaveEntryRepository;
     private final WorkScheduleRepository workScheduleRepository;
+    private final UserLeaveEntryRepository userLeaveEntryRepository;
+    private final UserCompLeaveEntryRepository userCompLeaveEntryRepository;
+    private final UserVacationUsedCompLeaveRepository userVacationUsedCompLeaveRepository;
 
     @Transactional
     @Override
@@ -56,6 +63,7 @@ public class VacationDocumentV1Service implements VacationDocumentService {
         CreateVacationDocumentV1Request createV1Request = (CreateVacationDocumentV1Request)createRequest;
 
         checkArgument(StringUtils.isNotBlank(createV1Request.userUniqueId()), "userUniqueId must be provided.");
+        checkArgument(isNotEmpty(createV1Request.vacationType()), "vacationType must be provided.");
 
         String currentUserId = AuthUtils.getCurrentUserId();
         UserResponse user = userClient.getById(createV1Request.userUniqueId());
@@ -87,7 +95,28 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
         createdDocument = documentRepository.save(createdDocument);
 
-        log.debug("created vacation document: {}", createdDocument);
+        log.debug("created vacation document. ({})", createdDocument);
+
+        // 보상 휴가 처리
+        if (createV1Request.vacationType() == VacationType.COMPENSATORY) {
+            checkArgument(!createV1Request.compLeaveEntryIds().isEmpty(), "compLeaveEntryIds must be provided.");
+
+            for (Long compLeaveEntryId : createV1Request.compLeaveEntryIds()) {
+                UserCompLeaveEntry userCompLeaveEntry =
+                    userCompLeaveEntryRepository.getUserEntry(compLeaveEntryId, createV1Request.userUniqueId())
+                        .orElseThrow(() -> new NotFoundException(UserCompLeaveEntry.class, compLeaveEntryId));
+
+                UserVacationUsedCompLeave createdUsedCompLeave = new UserVacationUsedCompLeave();
+
+                createdDocument.addUsedCompLeave(createdUsedCompLeave);
+                userCompLeaveEntry.addUsedCompLeave(createdUsedCompLeave);
+
+                userVacationUsedCompLeaveRepository.save(createdUsedCompLeave);
+
+                log.debug("used user vacation used comp leave entry id {}", compLeaveEntryId);
+
+            }
+        }
 
         return from(createdDocument);
     }

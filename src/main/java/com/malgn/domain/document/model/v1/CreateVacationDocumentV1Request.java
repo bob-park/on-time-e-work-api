@@ -1,6 +1,9 @@
 package com.malgn.domain.document.model.v1;
 
+import static org.apache.commons.lang3.ObjectUtils.*;
+
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.Builder;
 
@@ -14,6 +17,11 @@ public record CreateVacationDocumentV1Request(String userUniqueId,
                                               VacationSubType vacationSubType,
                                               LocalDate startDate,
                                               LocalDate endDate,
-                                              String reason)
+                                              String reason,
+                                              List<Long> compLeaveEntryIds)
     implements CreateVacationDocumentRequest {
+
+    public CreateVacationDocumentV1Request {
+        compLeaveEntryIds = defaultIfNull(compLeaveEntryIds, List.of());
+    }
 }

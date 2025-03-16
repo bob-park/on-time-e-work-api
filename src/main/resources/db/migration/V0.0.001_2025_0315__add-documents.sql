@@ -5,7 +5,7 @@ create table users_comp_leave_entries
     user_unique_id     varchar(41)                 not null,
     contents           varchar(500)                not null,
     description        text,
-    effective_date     timestamp                   not null,
+    effective_date     date                        not null,
     leave_days         numeric(3, 1) default 0     not null,
     used_days          numeric(3, 1) default 0     not null,
     created_date       timestamp     default now() not null,
@@ -13,6 +13,22 @@ create table users_comp_leave_entries
     last_modified_date timestamp,
     last_modified_by   varchar(200)
 );
+
+-- 업무 일정
+create table work_schedules
+(
+    id                 bigserial               not null primary key,
+    contents           varchar(50)             not null,
+    description        text,
+    start_date         date                    not null,
+    end_date           date                    not null,
+    is_repeated        bool      default false not null,
+    is_closed          bool      default false not null,
+    created_date       timestamp default now() not null,
+    created_by         varchar(200)            not null,
+    last_modified_date timestamp,
+    last_modified_by   varchar(200)
+)
 
 -- 문서
 create table documents
@@ -41,18 +57,15 @@ create table documents_vacations
     foreign key (id) references documents (id)
 )
 
--- 업무 일정
-create table work_schedules
+-- 보상 휴가 사용 목록
+create table users_vacations_used_comp_leaves
 (
-    id                 bigserial               not null primary key,
-    contents           varchar(50)             not null,
-    description        text,
-    start_date         date                    not null,
-    end_date           date                    not null,
-    is_repeated        bool      default false not null,
-    is_closed          bool      default false not null,
-    created_date       timestamp default now() not null,
-    created_by         varchar(200)            not null,
-    last_modified_date timestamp,
-    last_modified_by   varchar(200)
+    id                  bigserial               not null primary key,
+    document_id         bigint                  not null,
+    comp_leave_entry_id bigint                  not null,
+    created_date        timestamp default now() not null,
+    last_modified_date  timestamp,
+
+    foreign key (document_id) references documents_vacations (id),
+    foreign key (comp_leave_entry_id) references users_comp_leave_entries (id)
 )
