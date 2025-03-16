@@ -12,5 +12,5 @@ public interface DocumentResponse extends CommonResponse {
 
     DocumentStatus status();
 
-    String writerId();
+    String userUniqueId();
 }

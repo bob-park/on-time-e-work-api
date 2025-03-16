@@ -46,11 +46,11 @@ public class VacationDocument extends Document {
     private String reason;
 
     @Builder
-    private VacationDocument(Long id, DocumentStatus status, String writerId,
+    private VacationDocument(Long id, DocumentStatus status, String userUniqueId,
         VacationType vacationType, VacationSubType vacationSubType, LocalDate startDate, LocalDate endDate,
         BigDecimal usedDays, String reason) {
 
-        super(id, DocumentType.VACATION, status, writerId);
+        super(id, DocumentType.VACATION, status, userUniqueId);
 
         checkArgument(isNotEmpty(vacationType), "vacationType must be provided.");
         checkArgument(isNotEmpty(startDate), "startDate must be provided.");

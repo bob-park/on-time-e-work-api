@@ -7,6 +7,8 @@ import com.malgn.domain.document.entity.type.VacationType;
 
 public interface CreateVacationDocumentRequest {
 
+    String userUniqueId();
+
     VacationType vacationType();
 
     VacationSubType vacationSubType();

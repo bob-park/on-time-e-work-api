@@ -9,7 +9,8 @@ import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.model.CreateVacationDocumentRequest;
 
 @Builder
-public record CreateVacationDocumentV1Request(VacationType vacationType,
+public record CreateVacationDocumentV1Request(String userUniqueId,
+                                              VacationType vacationType,
                                               VacationSubType vacationSubType,
                                               LocalDate startDate,
                                               LocalDate endDate,

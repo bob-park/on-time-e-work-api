@@ -46,16 +46,16 @@ public abstract class Document extends BaseEntity<Long> {
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
 
-    private String writerId;
+    private String userUniqueId;
 
-    protected Document(Long id, DocumentType type, DocumentStatus status, String writerId) {
+    protected Document(Long id, DocumentType type, DocumentStatus status, String userUniqueId) {
 
         checkArgument(isNotEmpty(type), "type must be provided.");
-        checkArgument(StringUtils.isNotBlank(writerId), "writerId must be provided.");
+        checkArgument(StringUtils.isNotBlank(userUniqueId), "userUniqueId must be provided.");
 
         this.id = id;
         this.type = type;
         this.status = defaultIfNull(status, DocumentStatus.WAITING);
-        this.writerId = writerId;
+        this.userUniqueId = userUniqueId;
     }
 }

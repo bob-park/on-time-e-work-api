@@ -1,11 +1,13 @@
 package com.malgn.domain.document.service.v1;
 
+import static com.google.common.base.Preconditions.*;
 import static com.malgn.domain.document.model.v1.VacationDocumentV1Response.*;
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.temporal.ChronoField;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.base.Preconditions;
+
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.model.CreateVacationDocumentRequest;
 import com.malgn.domain.document.model.VacationDocumentResponse;
@@ -21,6 +27,9 @@ import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
 import com.malgn.domain.document.model.v1.VacationDocumentV1Response;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.document.service.VacationDocumentService;
+import com.malgn.domain.user.feign.UserFeignClient;
+import com.malgn.domain.user.model.UserResponse;
+import com.malgn.utils.AuthUtils;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,15 +40,26 @@ public class VacationDocumentV1Service implements VacationDocumentService {
     private static final List<Integer> DEFAULT_FAMILY_DAYS_WEEKS = List.of(1, 3);
     private static final List<Integer> DEFAULT_WEEK_ENDS_ = List.of(3, 7);
 
+    private final UserFeignClient userClient;
+
     private final VacationDocumentRepository documentRepository;
 
+    @Transactional
     @Override
     public VacationDocumentResponse createDocument(CreateVacationDocumentRequest createRequest) {
 
         CreateVacationDocumentV1Request createV1Request = (CreateVacationDocumentV1Request)createRequest;
 
+        checkArgument(StringUtils.isNotBlank(createV1Request.userUniqueId()), "userUniqueId must be provided.");
+
+        String currentUserId = AuthUtils.getCurrentUserId();
+        UserResponse user = userClient.getById(createV1Request.userUniqueId());
+
+        checkArgument(StringUtils.equals(currentUserId, user.userId()), "not match user and account.");
+
         VacationDocument createdDocument =
             VacationDocument.builder()
+                .userUniqueId(createRequest.userUniqueId())
                 .vacationType(createV1Request.vacationType())
                 .vacationSubType(createV1Request.vacationSubType())
                 .startDate(createV1Request.startDate())
@@ -61,9 +81,39 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
     private BigDecimal calculateUsedDate(LocalDate startDate, LocalDate endDate, boolean isHalf) {
 
+        if (isHalf) {
+            return BigDecimal.valueOf(0.5);
+        }
+
         BigDecimal result = BigDecimal.ZERO;
 
-        int between = Period.between(startDate, endDate).getDays();
+        int days = Period.between(startDate, endDate).getDays();
+
+        for (int i = 0; i <= days; i++) {
+
+            LocalDate tempDate = startDate.plusDays(i);
+
+            switch (tempDate.getDayOfWeek()) {
+                case FRIDAY -> {
+                    int weekCountOfMonth = tempDate.get(ChronoField.ALIGNED_WEEK_OF_MONTH);
+
+                    if (DEFAULT_FAMILY_DAYS_WEEKS.contains(weekCountOfMonth)) {
+                        result = result.add(BigDecimal.valueOf(0.5));
+                    } else {
+                        result = result.add(BigDecimal.ONE);
+                    }
+                }
+
+                case SATURDAY, SUNDAY -> {
+                    // ignore
+                }
+
+                default -> {
+                    result = result.add(BigDecimal.ONE);
+                }
+            }
+
+        }
 
         return result;
     }

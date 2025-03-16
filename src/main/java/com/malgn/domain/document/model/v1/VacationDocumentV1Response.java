@@ -17,7 +17,7 @@ import com.malgn.domain.document.model.VacationDocumentResponse;
 public record VacationDocumentV1Response(Long id,
                                          DocumentType type,
                                          DocumentStatus status,
-                                         String writerId,
+                                         String userUniqueId,
                                          VacationType vacationType,
                                          VacationSubType vacationSubType,
                                          LocalDate startDate,
@@ -35,7 +35,7 @@ public record VacationDocumentV1Response(Long id,
             .id(entity.getId())
             .type(entity.getType())
             .status(entity.getStatus())
-            .writerId(entity.getWriterId())
+            .userUniqueId(entity.getUserUniqueId())
             .vacationType(entity.getVacationType())
             .vacationSubType(entity.getVacationSubType())
             .startDate(entity.getStartDate())

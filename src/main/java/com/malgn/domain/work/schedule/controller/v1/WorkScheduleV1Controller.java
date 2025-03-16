@@ -1,4 +1,4 @@
-package com.malgn.domain.work.schedule.controller;
+package com.malgn.domain.work.schedule.controller.v1;
 
 import lombok.RequiredArgsConstructor;
 

@@ -16,7 +16,7 @@ public class DocumentV1Response implements DocumentResponse {
     private final Long id;
     private final DocumentType type;
     private final DocumentStatus status;
-    private final String writerId;
+    private final String userUniqueId;
 
     private final LocalDateTime createdDate;
     private final String createdBy;
@@ -24,12 +24,12 @@ public class DocumentV1Response implements DocumentResponse {
     private final String lastModifiedBy;
 
     @Builder(toBuilder = true)
-    protected DocumentV1Response(Long id, DocumentType type, DocumentStatus status, String writerId,
+    protected DocumentV1Response(Long id, DocumentType type, DocumentStatus status, String userUniqueId,
         LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy) {
         this.id = id;
         this.type = type;
         this.status = status;
-        this.writerId = writerId;
+        this.userUniqueId = userUniqueId;
         this.createdDate = createdDate;
         this.createdBy = createdBy;
         this.lastModifiedDate = lastModifiedDate;
@@ -41,7 +41,7 @@ public class DocumentV1Response implements DocumentResponse {
             .id(entity.getId())
             .type(entity.getType())
             .status(entity.getStatus())
-            .writerId(entity.getWriterId())
+            .userUniqueId(entity.getUserUniqueId())
             .createdDate(entity.getCreatedDate())
             .createdBy(entity.getCreatedBy())
             .lastModifiedDate(entity.getLastModifiedDate())
@@ -65,8 +65,8 @@ public class DocumentV1Response implements DocumentResponse {
     }
 
     @Override
-    public String writerId() {
-        return this.writerId;
+    public String userUniqueId() {
+        return this.userUniqueId;
     }
 
     public LocalDateTime createdDate() {
