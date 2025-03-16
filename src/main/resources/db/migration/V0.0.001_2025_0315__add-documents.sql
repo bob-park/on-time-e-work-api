@@ -43,7 +43,7 @@ create table documents_vacations
 )
 
 -- 업무 일정
-create table works_schedules
+create table work_schedules
 (
     id                 bigserial               not null primary key,
     contents           varchar(50)             not null,
