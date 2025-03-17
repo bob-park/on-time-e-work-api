@@ -13,6 +13,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +22,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.NotSupportException;
-import com.malgn.common.exception.ServiceRuntimeException;
+import com.malgn.common.model.Id;
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.model.CreateVacationDocumentRequest;
+import com.malgn.domain.document.model.SearchVacationDocumentRequest;
 import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
+import com.malgn.domain.document.model.v1.VacationDocumentV1Response;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.document.service.VacationDocumentService;
 import com.malgn.domain.user.entity.UserCompLeaveEntry;
@@ -56,6 +60,7 @@ public class VacationDocumentV1Service implements VacationDocumentService {
     private final UserLeaveEntryRepository userLeaveEntryRepository;
     private final UserCompLeaveEntryRepository userCompLeaveEntryRepository;
     private final UserVacationUsedCompLeaveRepository userVacationUsedCompLeaveRepository;
+    private final VacationDocumentRepository vacationDocumentRepository;
 
     @Transactional
     @Override
@@ -126,6 +131,24 @@ public class VacationDocumentV1Service implements VacationDocumentService {
         }
 
         return from(createdDocument);
+    }
+
+    @Override
+    public Page<VacationDocumentResponse> search(SearchVacationDocumentRequest searchRequest, Pageable pageable) {
+
+        Page<VacationDocument> result = vacationDocumentRepository.search(searchRequest, pageable);
+
+        return result.map(VacationDocumentV1Response::from);
+    }
+
+    @Override
+    public VacationDocumentResponse getById(Id<VacationDocument, Long> id) {
+
+        VacationDocument document =
+            vacationDocumentRepository.getDocumentById(id)
+                .orElseThrow(() -> new NotFoundException(id));
+
+        return from(document, true);
     }
 
     private BigDecimal calculateUsedDate(LocalDate startDate, LocalDate endDate, boolean isHalf) {

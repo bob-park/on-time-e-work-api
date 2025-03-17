@@ -2,6 +2,7 @@ package com.malgn.domain.document.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import com.malgn.domain.document.entity.type.VacationSubType;
 import com.malgn.domain.document.entity.type.VacationType;
@@ -19,5 +20,7 @@ public interface VacationDocumentResponse extends DocumentResponse {
     BigDecimal usedDays();
 
     String reason();
+
+    List<UserCompLeaveEntryResponse> usedCompLeaveEntries();
 
 }

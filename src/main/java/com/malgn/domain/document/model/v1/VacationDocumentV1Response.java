@@ -3,6 +3,7 @@ package com.malgn.domain.document.model.v1;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.Builder;
 
@@ -11,7 +12,9 @@ import com.malgn.domain.document.entity.type.DocumentStatus;
 import com.malgn.domain.document.entity.type.DocumentType;
 import com.malgn.domain.document.entity.type.VacationSubType;
 import com.malgn.domain.document.entity.type.VacationType;
+import com.malgn.domain.document.model.UserCompLeaveEntryResponse;
 import com.malgn.domain.document.model.VacationDocumentResponse;
+import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
 
 @Builder
 public record VacationDocumentV1Response(Long id,
@@ -24,6 +27,7 @@ public record VacationDocumentV1Response(Long id,
                                          LocalDate endDate,
                                          BigDecimal usedDays,
                                          String reason,
+                                         List<UserCompLeaveEntryResponse> usedCompLeaveEntries,
                                          LocalDateTime createdDate,
                                          String createdBy,
                                          LocalDateTime lastModifiedDate,
@@ -31,6 +35,10 @@ public record VacationDocumentV1Response(Long id,
     implements VacationDocumentResponse {
 
     public static VacationDocumentResponse from(VacationDocument entity) {
+        return from(entity, false);
+    }
+
+    public static VacationDocumentResponse from(VacationDocument entity, boolean detail) {
         return VacationDocumentV1Response.builder()
             .id(entity.getId())
             .type(entity.getType())
@@ -42,6 +50,12 @@ public record VacationDocumentV1Response(Long id,
             .endDate(entity.getEndDate())
             .usedDays(entity.getUsedDays())
             .reason(entity.getReason())
+            .usedCompLeaveEntries(detail ?
+                entity.getUsedCompLeaves().stream()
+                    .map(UserVacationUsedCompLeave::getCompLeaveEntry)
+                    .map(UserCompLeaveEntryV1Response::from)
+                    .toList()
+                : null)
             .createdDate(entity.getCreatedDate())
             .createdBy(entity.getCreatedBy())
             .lastModifiedDate(entity.getLastModifiedDate())
