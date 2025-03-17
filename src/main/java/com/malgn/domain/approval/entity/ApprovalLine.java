@@ -26,6 +26,7 @@ import lombok.ToString.Exclude;
 import org.apache.commons.lang3.StringUtils;
 
 import com.malgn.common.entity.BaseTimeEntity;
+import com.malgn.domain.document.entity.DocumentApprovalHistory;
 
 @ToString
 @Getter
@@ -53,6 +54,10 @@ public class ApprovalLine extends BaseTimeEntity<Long> {
     private String contents;
     private String description;
 
+    @Exclude
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "approvalLine")
+    private List<DocumentApprovalHistory> approvalHistories = new ArrayList<>();
+
     @Builder
     private ApprovalLine(Long id, Long teamId, String userUniqueId, String contents, String description) {
 
@@ -77,5 +82,11 @@ public class ApprovalLine extends BaseTimeEntity<Long> {
     public void addChild(ApprovalLine child) {
         child.updateParent(this);
         getChildren().add(child);
+    }
+
+    public void addApprovalHistory(DocumentApprovalHistory approvalHistory) {
+        approvalHistory.updateLine(this);
+
+        getApprovalHistories().add(approvalHistory);
     }
 }

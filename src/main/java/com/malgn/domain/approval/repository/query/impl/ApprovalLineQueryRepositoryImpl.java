@@ -3,6 +3,7 @@ package com.malgn.domain.approval.repository.query.impl;
 import static com.malgn.domain.approval.entity.QApprovalLine.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,5 +27,15 @@ public class ApprovalLineQueryRepositoryImpl implements ApprovalLineQueryReposit
             .leftJoin(approvalLine.parent, parent).fetchJoin()
             .where(approvalLine.teamId.eq(teamId))
             .fetch();
+    }
+
+    @Override
+    public Optional<ApprovalLine> getFirstLine(Long teamId) {
+        return Optional.ofNullable(
+            query.selectFrom(approvalLine)
+                .where(
+                    approvalLine.parent.isNull(),
+                    approvalLine.teamId.eq(teamId))
+                .fetchOne());
     }
 }

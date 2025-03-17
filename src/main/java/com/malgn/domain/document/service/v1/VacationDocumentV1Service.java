@@ -30,8 +30,12 @@ import com.malgn.domain.document.model.SearchVacationDocumentRequest;
 import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
 import com.malgn.domain.document.model.v1.VacationDocumentV1Response;
+import com.malgn.domain.document.provider.RequestDocumentProvider;
+import com.malgn.domain.document.provider.v1.DocumentV1Request;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.document.service.VacationDocumentService;
+import com.malgn.domain.team.feign.TeamFeignClient;
+import com.malgn.domain.team.model.TeamResponse;
 import com.malgn.domain.user.entity.UserCompLeaveEntry;
 import com.malgn.domain.user.entity.UserLeaveEntry;
 import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
@@ -54,6 +58,9 @@ public class VacationDocumentV1Service implements VacationDocumentService {
     private static final List<Integer> DEFAULT_WEEK_ENDS_ = List.of(3, 7);
 
     private final UserFeignClient userClient;
+    private final TeamFeignClient teamClient;
+
+    private final RequestDocumentProvider requestDocumentProvider;
 
     private final VacationDocumentRepository documentRepository;
     private final WorkScheduleRepository workScheduleRepository;
@@ -73,6 +80,7 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
         String currentUserId = AuthUtils.getCurrentUserId();
         UserResponse user = userClient.getById(createV1Request.userUniqueId());
+        TeamResponse team = teamClient.getTeamByUserUniqueId(user.uniqueId());
 
         checkArgument(StringUtils.equals(currentUserId, user.userId()), "not match user and account.");
 
@@ -129,6 +137,12 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
             checkArgument(tempUsedDays.compareTo(BigDecimal.ZERO) <= 0, "invalid compensatory leave count..");
         }
+
+        requestDocumentProvider.request(
+            DocumentV1Request.builder()
+                .documentId(createdDocument.getId())
+                .teamId(team.id())
+                .build());
 
         return from(createdDocument);
     }
