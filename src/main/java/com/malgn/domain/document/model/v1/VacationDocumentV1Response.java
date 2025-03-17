@@ -12,9 +12,10 @@ import com.malgn.domain.document.entity.type.DocumentStatus;
 import com.malgn.domain.document.entity.type.DocumentType;
 import com.malgn.domain.document.entity.type.VacationSubType;
 import com.malgn.domain.document.entity.type.VacationType;
-import com.malgn.domain.document.model.UserCompLeaveEntryResponse;
+import com.malgn.domain.user.model.UserCompLeaveEntryResponse;
 import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
+import com.malgn.domain.user.model.v1.UserCompLeaveEntryV1Response;
 
 @Builder
 public record VacationDocumentV1Response(Long id,

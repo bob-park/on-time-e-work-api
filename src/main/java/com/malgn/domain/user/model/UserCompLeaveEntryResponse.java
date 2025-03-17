@@ -1,4 +1,4 @@
-package com.malgn.domain.document.model;
+package com.malgn.domain.user.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

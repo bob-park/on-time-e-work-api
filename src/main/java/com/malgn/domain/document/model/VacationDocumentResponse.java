@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.malgn.domain.document.entity.type.VacationSubType;
 import com.malgn.domain.document.entity.type.VacationType;
+import com.malgn.domain.user.model.UserCompLeaveEntryResponse;
 
 public interface VacationDocumentResponse extends DocumentResponse {
 

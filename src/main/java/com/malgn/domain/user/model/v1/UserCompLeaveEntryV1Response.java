@@ -1,4 +1,4 @@
-package com.malgn.domain.document.model.v1;
+package com.malgn.domain.user.model.v1;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -6,8 +6,7 @@ import java.time.LocalDateTime;
 
 import lombok.Builder;
 
-import com.malgn.domain.document.entity.VacationDocument;
-import com.malgn.domain.document.model.UserCompLeaveEntryResponse;
+import com.malgn.domain.user.model.UserCompLeaveEntryResponse;
 import com.malgn.domain.user.entity.UserCompLeaveEntry;
 
 @Builder
