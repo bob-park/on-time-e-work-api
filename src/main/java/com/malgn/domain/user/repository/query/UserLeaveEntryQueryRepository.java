@@ -8,4 +8,6 @@ public interface UserLeaveEntryQueryRepository {
 
     Optional<UserLeaveEntry> getLeaveEntry(String userId, int year);
 
+
+
 }
