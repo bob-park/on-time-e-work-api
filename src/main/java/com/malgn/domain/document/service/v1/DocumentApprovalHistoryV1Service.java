@@ -6,6 +6,8 @@ import static com.malgn.domain.document.model.v1.DocumentApprovalHistoryV1Respon
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,8 @@ import com.malgn.domain.document.entity.DocumentApprovalHistory;
 import com.malgn.domain.document.model.ApproveDocumentRequest;
 import com.malgn.domain.document.model.DocumentApprovalHistoryResponse;
 import com.malgn.domain.document.model.RejectDocumentRequest;
+import com.malgn.domain.document.model.SearchDocumentApprovalHistoryRequest;
+import com.malgn.domain.document.model.v1.DocumentApprovalHistoryV1Response;
 import com.malgn.domain.document.model.v1.RejectDocumentV1Request;
 import com.malgn.domain.document.processor.DelegatingApprovalProcessor;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
@@ -33,6 +37,15 @@ public class DocumentApprovalHistoryV1Service implements DocumentApprovalHistory
     private final DelegatingApprovalProcessor processor;
 
     private final DocumentApprovalHistoryRepository documentApprovalHistoryRepository;
+
+    @Override
+    public Page<DocumentApprovalHistoryResponse> search(SearchDocumentApprovalHistoryRequest searchRequest,
+        Pageable pageable) {
+
+        Page<DocumentApprovalHistory> result = documentApprovalHistoryRepository.search(searchRequest, pageable);
+
+        return result.map(item -> DocumentApprovalHistoryV1Response.from(item, true));
+    }
 
     @Transactional(noRollbackFor = {OverLeaveEntryException.class, ServiceRuntimeException.class})
     @Override

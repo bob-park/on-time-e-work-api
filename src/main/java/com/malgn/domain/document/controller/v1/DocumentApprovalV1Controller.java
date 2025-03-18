@@ -2,9 +2,13 @@ package com.malgn.domain.document.controller.v1;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,6 +18,7 @@ import com.malgn.domain.document.entity.DocumentApprovalHistory;
 import com.malgn.domain.document.model.ApproveDocumentRequest;
 import com.malgn.domain.document.model.DocumentApprovalHistoryResponse;
 import com.malgn.domain.document.model.v1.RejectDocumentV1Request;
+import com.malgn.domain.document.model.v1.SearchDocumentApprovalHistoryV1Request;
 import com.malgn.domain.document.service.v1.DocumentApprovalHistoryV1Service;
 
 @RequiredArgsConstructor
@@ -22,6 +27,12 @@ import com.malgn.domain.document.service.v1.DocumentApprovalHistoryV1Service;
 public class DocumentApprovalV1Controller {
 
     private final DocumentApprovalHistoryV1Service approvalHistoryService;
+
+    @GetMapping(path = "")
+    public Page<DocumentApprovalHistoryResponse> search(SearchDocumentApprovalHistoryV1Request searchRequest,
+        @PageableDefault(sort = "createdDate", size = 25, direction = Direction.DESC) Pageable pageable) {
+        return approvalHistoryService.search(searchRequest, pageable);
+    }
 
     @PostMapping(path = "{id:\\d+}")
     public DocumentApprovalHistoryResponse approve(@PathVariable long id) {
