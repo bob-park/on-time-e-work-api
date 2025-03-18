@@ -1,17 +1,28 @@
 package com.malgn.domain.document.processor.v1;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoField;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.checkerframework.checker.units.qual.A;
 
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.NotSupportException;
 import com.malgn.common.exception.ServiceRuntimeException;
 import com.malgn.common.model.Id;
 import com.malgn.domain.approval.entity.ApprovalLine;
+import com.malgn.domain.attendance.feign.AttendanceScheduleFeignClient;
+import com.malgn.domain.attendance.model.AddAttendanceScheduleRequest;
 import com.malgn.domain.document.entity.Document;
 import com.malgn.domain.document.entity.DocumentApprovalHistory;
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.entity.type.DocumentType;
+import com.malgn.domain.document.entity.type.VacationSubType;
 import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.processor.ApprovalProcessor;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
@@ -24,6 +35,10 @@ import com.malgn.domain.user.repository.UserLeaveEntryRepository;
 @Slf4j
 @RequiredArgsConstructor
 public class VacationApprovalV1Processor implements ApprovalProcessor {
+
+    private static final List<Integer> DEFAULT_FAMILY_DAYS_WEEKS = List.of(1, 3);
+
+    private final AttendanceScheduleFeignClient attendanceScheduleClient;
 
     private final DocumentApprovalHistoryRepository approvalHistoryRepository;
     private final VacationDocumentRepository documentRepository;
@@ -95,6 +110,12 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
                 throw new ServiceRuntimeException(e);
             }
 
+            try {
+                addAttendanceSchedule(vacationDocument);
+            } catch (Exception e) {
+                log.error("failed add attendance schedule. - {}", e.getMessage(), e);
+            }
+
             // 최종 승인자인 경우 최종 승인 처리
             document.approve();
 
@@ -123,5 +144,69 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
         log.debug("rejected history. ({})", history);
 
         return history;
+    }
+
+    private void addAttendanceSchedule(VacationDocument vacation) {
+
+        Period between = Period.between(vacation.getStartDate(), vacation.getEndDate());
+
+        long days = between.getDays();
+
+        for (long i = 0; i < days; i++) {
+
+            boolean isSkip = false;
+            String dayOffType = AttendanceScheduleFeignClient.DAY_OFF;
+            LocalDate date = vacation.getStartDate().plusDays(i);
+
+            switch (date.getDayOfWeek()) {
+                case FRIDAY -> {
+                    int weekCountOfMonth = date.get(ChronoField.ALIGNED_WEEK_OF_MONTH);
+
+                    if (DEFAULT_FAMILY_DAYS_WEEKS.contains(weekCountOfMonth)) {
+                        dayOffType = AttendanceScheduleFeignClient.AM_DAY_OFF;
+                    } else {
+                        dayOffType = getDayOffType(vacation.getVacationSubType());
+                    }
+                }
+
+                case SATURDAY, SUNDAY -> {
+                    // ignore
+                    isSkip = true;
+                }
+
+                default -> dayOffType = getDayOffType(vacation.getVacationSubType());
+            }
+
+            if (isSkip) {
+                continue;
+            }
+
+            attendanceScheduleClient.addSchedule(
+                AddAttendanceScheduleRequest.builder()
+                    .userUniqueId(vacation.getUserUniqueId())
+                    .workingDate(date)
+                    .dayOffType(dayOffType)
+                    .build());
+        }
+
+    }
+
+    private String getDayOffType(VacationSubType subType) {
+
+        if (subType == null) {
+            return AttendanceScheduleFeignClient.DAY_OFF;
+        }
+
+        switch (subType) {
+            case AM_HALF_DAY_OFF -> {
+                return AttendanceScheduleFeignClient.AM_DAY_OFF;
+            }
+            case PM_HALF_DAY_OFF -> {
+                return AttendanceScheduleFeignClient.PM_DAY_OFF;
+            }
+            default -> {
+                return AttendanceScheduleFeignClient.DAY_OFF;
+            }
+        }
     }
 }

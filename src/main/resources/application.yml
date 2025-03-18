@@ -61,6 +61,8 @@ spring:
             url: ${auth_user_api_host:http://localhost:8080}
           on-time-api-team:
             url: ${on_time_api_host:http://localhost:8081}
+          on-time-api-attendance-schedule:
+            url: ${on_time_api_host:http://localhost:8081}
   threads:
     virtual:
       enabled: on

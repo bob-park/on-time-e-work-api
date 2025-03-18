@@ -56,7 +56,6 @@ import com.malgn.utils.AuthUtils;
 public class VacationDocumentV1Service implements VacationDocumentService {
 
     private static final List<Integer> DEFAULT_FAMILY_DAYS_WEEKS = List.of(1, 3);
-    private static final List<Integer> DEFAULT_WEEK_ENDS_ = List.of(3, 7);
 
     private final UserFeignClient userClient;
     private final TeamFeignClient teamClient;

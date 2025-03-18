@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.malgn.domain.approval.repository.ApprovalLineRepository;
+import com.malgn.domain.attendance.feign.AttendanceScheduleFeignClient;
 import com.malgn.domain.document.processor.DelegatingApprovalProcessor;
 import com.malgn.domain.document.processor.v1.VacationApprovalV1Processor;
 import com.malgn.domain.document.provider.RequestDocumentProvider;
@@ -28,6 +29,7 @@ public class AppConfiguration {
     private final VacationDocumentRepository vacationDocumentRepository;
     private final UserLeaveEntryRepository leaveEntryRepository;
     private final UserCompLeaveEntryRepository compLeaveEntryRepository;
+    private final AttendanceScheduleFeignClient attendanceScheduleClient;
 
     @Bean
     public RequestDocumentProvider requestDocumentProvider() {
@@ -40,6 +42,7 @@ public class AppConfiguration {
 
         processor.add(
             new VacationApprovalV1Processor(
+                attendanceScheduleClient,
                 historyRepository,
                 vacationDocumentRepository,
                 leaveEntryRepository,
