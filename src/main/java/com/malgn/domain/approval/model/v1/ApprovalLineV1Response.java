@@ -10,11 +10,13 @@ import lombok.Builder;
 
 import com.malgn.domain.approval.entity.ApprovalLine;
 import com.malgn.domain.approval.model.ApprovalLineResponse;
+import com.malgn.domain.document.entity.type.DocumentType;
 
 @Builder
 public record ApprovalLineV1Response(Long id,
                                      ApprovalLineResponse parent,
                                      List<ApprovalLineResponse> children,
+                                     DocumentType documentType,
                                      Long teamId,
                                      String userUniqueId,
                                      String contents,
@@ -30,6 +32,7 @@ public record ApprovalLineV1Response(Long id,
     public static ApprovalLineResponse from(ApprovalLine line) {
         return ApprovalLineV1Response.builder()
             .id(line.getId())
+            .documentType(line.getDocumentType())
             .teamId(line.getTeamId())
             .userUniqueId(line.getUserUniqueId())
             .contents(line.getContents())

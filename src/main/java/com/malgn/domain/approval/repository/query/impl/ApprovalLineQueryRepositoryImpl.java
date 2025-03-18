@@ -7,10 +7,12 @@ import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import com.malgn.domain.approval.entity.ApprovalLine;
 import com.malgn.domain.approval.entity.QApprovalLine;
+import com.malgn.domain.approval.model.SearchApprovalLineRequest;
 import com.malgn.domain.approval.repository.query.ApprovalLineQueryRepository;
 import com.malgn.domain.document.entity.type.DocumentType;
 
@@ -20,13 +22,15 @@ public class ApprovalLineQueryRepositoryImpl implements ApprovalLineQueryReposit
     private final JPAQueryFactory query;
 
     @Override
-    public List<ApprovalLine> getLines(Long teamId) {
+    public List<ApprovalLine> getLines(SearchApprovalLineRequest searchRequest) {
 
         QApprovalLine parent = new QApprovalLine("parent");
 
         return query.selectFrom(approvalLine)
             .leftJoin(approvalLine.parent, parent).fetchJoin()
-            .where(approvalLine.teamId.eq(teamId))
+            .where(
+                eqTeamId(searchRequest.teamId()),
+                eqDocumentType(searchRequest.documentType()))
             .fetch();
     }
 
@@ -54,5 +58,13 @@ public class ApprovalLineQueryRepositoryImpl implements ApprovalLineQueryReposit
                     parent.id.eq(parentId),
                     approvalLine.documentType.eq(documentType))
                 .fetchOne());
+    }
+
+    private BooleanExpression eqTeamId(Long teamId) {
+        return teamId != null ? approvalLine.teamId.eq(teamId) : null;
+    }
+
+    private BooleanExpression eqDocumentType(DocumentType documentType) {
+        return documentType != null ? approvalLine.documentType.eq(documentType) : null;
     }
 }

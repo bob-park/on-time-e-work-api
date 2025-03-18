@@ -1,6 +1,6 @@
 package com.malgn.domain.approval.service.v1;
 
-
+import static com.google.common.base.Preconditions.*;
 import static org.apache.commons.lang3.ObjectUtils.*;
 
 import java.util.List;
@@ -14,9 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.google.common.base.Preconditions;
+
 import com.malgn.domain.approval.entity.ApprovalLine;
 import com.malgn.domain.approval.model.ApprovalLineResponse;
+import com.malgn.domain.approval.model.SearchApprovalLineRequest;
 import com.malgn.domain.approval.model.v1.ApprovalLineV1Response;
+import com.malgn.domain.approval.model.v1.SearchApprovalLineV1Request;
 import com.malgn.domain.approval.repository.ApprovalLineRepository;
 import com.malgn.domain.approval.service.ApprovalLineService;
 
@@ -29,9 +33,13 @@ public class ApprovalLineV1Service implements ApprovalLineService {
     private final ApprovalLineRepository approvalLineRepository;
 
     @Override
-    public List<ApprovalLineResponse> getAll(Long teamId) {
+    public List<ApprovalLineResponse> getAll(SearchApprovalLineRequest searchRequest) {
 
-        List<ApprovalLine> lines = approvalLineRepository.getLines(teamId);
+        SearchApprovalLineV1Request searchV1Request = (SearchApprovalLineV1Request)searchRequest;
+
+        checkArgument(isNotEmpty(searchV1Request.teamId()), "teamId must be provided.");
+
+        List<ApprovalLine> lines = approvalLineRepository.getLines(searchRequest);
 
         List<ApprovalLineResponse> result =
             lines.stream()
