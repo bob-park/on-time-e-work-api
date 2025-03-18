@@ -1,0 +1,10 @@
+services:
+  on-time-e-work-api:
+    container_name: on-time-e-work-api
+    image: ghcr.io/bob-park/on-time-e-work-api
+    build:
+      dockerfile: ./Dockerfile
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
