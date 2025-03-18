@@ -65,8 +65,8 @@ public class ApprovalLine extends BaseTimeEntity<Long> {
     private List<DocumentApprovalHistory> approvalHistories = new ArrayList<>();
 
     @Builder
-    private ApprovalLine(Long id, DocumentType documentType, Long teamId, String userUniqueId, String contents, String description) {
-
+    private ApprovalLine(Long id, DocumentType documentType, Long teamId, String userUniqueId, String contents,
+        String description) {
 
         checkArgument(isNotEmpty(documentType), "documentType must be provided.");
         checkArgument(isNotEmpty(teamId), "teamId must be provided.");
@@ -97,5 +97,13 @@ public class ApprovalLine extends BaseTimeEntity<Long> {
         approvalHistory.updateLine(this);
 
         getApprovalHistories().add(approvalHistory);
+    }
+
+    public ApprovalLine getNext() {
+        if (getChildren().isEmpty()) {
+            return null;
+        }
+
+        return getChildren().getFirst();
     }
 }

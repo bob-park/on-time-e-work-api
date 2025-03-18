@@ -76,4 +76,12 @@ public abstract class Document extends BaseEntity<Long> {
         approvalHistory.updateDocument(this);
         getApprovalHistories().add(approvalHistory);
     }
+
+    public void approve() {
+        this.status = DocumentStatus.APPROVED;
+    }
+
+    public void reject() {
+        this.status = DocumentStatus.REJECTED;
+    }
 }

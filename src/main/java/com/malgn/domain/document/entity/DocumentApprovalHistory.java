@@ -1,5 +1,6 @@
 package com.malgn.domain.document.entity;
 
+import static com.google.common.base.Preconditions.*;
 import static org.apache.commons.lang3.ObjectUtils.*;
 
 import jakarta.persistence.Entity;
@@ -67,6 +68,20 @@ public class DocumentApprovalHistory extends BaseEntity<Long> {
 
     public void updateLine(ApprovalLine approvalLine) {
         this.approvalLine = approvalLine;
+    }
+
+    public void approve() {
+        checkArgument(getStatus() == ApprovalStatus.WAITING, "invalid status");
+
+        this.status = ApprovalStatus.APPROVED;
+    }
+
+    public void reject(String reason) {
+
+        checkArgument(getStatus() == ApprovalStatus.WAITING, "invalid status");
+
+        this.status = ApprovalStatus.REJECTED;
+        this.reason = reason;
     }
 
 }
