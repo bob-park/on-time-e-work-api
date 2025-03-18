@@ -24,9 +24,13 @@ public record DocumentApprovalHistoryV1Response(Long id,
     implements DocumentApprovalHistoryResponse {
 
     public static DocumentApprovalHistoryResponse from(DocumentApprovalHistory entity) {
+        return from(entity, false);
+    }
+
+    public static DocumentApprovalHistoryResponse from(DocumentApprovalHistory entity, boolean detail) {
         return DocumentApprovalHistoryV1Response.builder()
             .id(entity.getId())
-            .document(DocumentV1Response.from(entity.getDocument()))
+            .document(detail ? DocumentV1Response.from(entity.getDocument()) : null)
             .approvalLine(ApprovalLineV1Response.from(entity.getApprovalLine()))
             .status(entity.getStatus())
             .reason(entity.getReason())

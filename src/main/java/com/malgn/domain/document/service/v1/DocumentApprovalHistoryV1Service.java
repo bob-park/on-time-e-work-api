@@ -45,7 +45,7 @@ public class DocumentApprovalHistoryV1Service implements DocumentApprovalHistory
 
         processor.approval(id, history.getDocument().getType());
 
-        return from(history);
+        return from(history, true);
     }
 
     @Transactional
@@ -63,6 +63,6 @@ public class DocumentApprovalHistoryV1Service implements DocumentApprovalHistory
 
         processor.reject(id, rejectV1Request.reason(), history.getDocument().getType());
 
-        return from(history);
+        return from(history, true);
     }
 }
