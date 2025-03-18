@@ -20,6 +20,7 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import com.malgn.common.entity.BaseTimeEntity;
+import com.malgn.domain.user.exception.OverLeaveEntryException;
 
 @ToString
 @Getter
@@ -67,5 +68,23 @@ public class UserLeaveEntry extends BaseTimeEntity<Long> {
 
     public BigDecimal availableCompDays() {
         return getTotalCompLeaveDays().subtract(getUsedCompLeaveDays());
+    }
+
+    public void useLeaveDays(BigDecimal useDays) {
+
+        if (availableDays().subtract(useDays).compareTo(BigDecimal.ZERO) < 0) {
+            throw new OverLeaveEntryException();
+        }
+
+        this.usedLeaveDays = getUsedLeaveDays().add(useDays);
+    }
+
+    public void useCompLeaveDays(BigDecimal useDays) {
+
+        if (availableCompDays().subtract(useDays).compareTo(BigDecimal.ZERO) < 0) {
+            throw new OverLeaveEntryException();
+        }
+
+        this.usedCompLeaveDays = getUsedCompLeaveDays().add(useDays);
     }
 }

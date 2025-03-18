@@ -13,6 +13,7 @@ import com.malgn.domain.document.provider.RequestDocumentProvider;
 import com.malgn.domain.document.provider.v1.RequestDocumentV1Provider;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.DocumentRepository;
+import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
 
@@ -24,6 +25,7 @@ public class AppConfiguration {
     private final ApprovalLineRepository approvalLineRepository;
     private final DocumentRepository documentRepository;
     private final DocumentApprovalHistoryRepository historyRepository;
+    private final VacationDocumentRepository vacationDocumentRepository;
     private final UserLeaveEntryRepository leaveEntryRepository;
     private final UserCompLeaveEntryRepository compLeaveEntryRepository;
 
@@ -37,7 +39,11 @@ public class AppConfiguration {
         DelegatingApprovalProcessor processor = new DelegatingApprovalProcessor();
 
         processor.add(
-            new VacationApprovalV1Processor(historyRepository, leaveEntryRepository, compLeaveEntryRepository));
+            new VacationApprovalV1Processor(
+                historyRepository,
+                vacationDocumentRepository,
+                leaveEntryRepository,
+                compLeaveEntryRepository));
 
         return processor;
     }

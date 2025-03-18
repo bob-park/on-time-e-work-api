@@ -11,19 +11,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.common.base.Preconditions;
-
 import com.malgn.common.exception.NotFoundException;
+import com.malgn.common.exception.ServiceRuntimeException;
 import com.malgn.common.model.Id;
 import com.malgn.domain.document.entity.DocumentApprovalHistory;
 import com.malgn.domain.document.model.ApproveDocumentRequest;
 import com.malgn.domain.document.model.DocumentApprovalHistoryResponse;
 import com.malgn.domain.document.model.RejectDocumentRequest;
-import com.malgn.domain.document.model.v1.DocumentApprovalHistoryV1Response;
 import com.malgn.domain.document.model.v1.RejectDocumentV1Request;
 import com.malgn.domain.document.processor.DelegatingApprovalProcessor;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.service.DocumentApprovalHistoryService;
+import com.malgn.domain.user.exception.OverLeaveEntryException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,7 +34,7 @@ public class DocumentApprovalHistoryV1Service implements DocumentApprovalHistory
 
     private final DocumentApprovalHistoryRepository documentApprovalHistoryRepository;
 
-    @Transactional
+    @Transactional(noRollbackFor = {OverLeaveEntryException.class, ServiceRuntimeException.class})
     @Override
     public DocumentApprovalHistoryResponse approve(Id<DocumentApprovalHistory, Long> id,
         ApproveDocumentRequest approveRequest) {
