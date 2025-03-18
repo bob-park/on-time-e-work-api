@@ -221,6 +221,7 @@ public class VacationDocumentV1Service implements VacationDocumentService {
         switch (vacationType) {
             case GENERAL -> availableDays = userLeaveEntry.availableDays();
             case COMPENSATORY -> availableDays = userLeaveEntry.availableCompDays();
+            case OFFICIAL -> availableDays = usedDays.add(BigDecimal.ZERO);
             default -> throw new NotSupportException(vacationType.name());
         }
 

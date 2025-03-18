@@ -5,5 +5,6 @@ import lombok.ToString;
 @ToString
 public enum VacationType {
     GENERAL,
-    COMPENSATORY;
+    COMPENSATORY,
+    OFFICIAL;
 }
