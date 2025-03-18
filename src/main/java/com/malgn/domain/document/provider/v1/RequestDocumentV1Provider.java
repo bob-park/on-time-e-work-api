@@ -34,13 +34,14 @@ public class RequestDocumentV1Provider implements RequestDocumentProvider {
 
         checkArgument(isNotEmpty(requestV1.documentId()), "documentId must be provided.");
         checkArgument(isNotEmpty(requestV1.teamId()), "teamId must be provided.");
+        checkArgument(isNotEmpty(requestV1.documentType()), "documentType must be provided.");
 
         Document document =
             documentRepository.findById(requestV1.documentId())
                 .orElseThrow(() -> new NotFoundException(Document.class, requestV1.documentId()));
 
         ApprovalLine line =
-            approvalLineRepository.getFirstLine(requestV1.teamId())
+            approvalLineRepository.getFirstLine(requestV1.teamId(), requestV1.documentType())
                 .orElseThrow(() -> new NotFoundException(ApprovalLine.class, requestV1.teamId()));
 
         DocumentApprovalHistory createdHistory = DocumentApprovalHistory.builder().build();

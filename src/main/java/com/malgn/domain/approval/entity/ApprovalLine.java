@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.malgn.common.entity.BaseTimeEntity;
 import com.malgn.domain.document.entity.DocumentApprovalHistory;
+import com.malgn.domain.document.entity.type.DocumentType;
 
 @ToString
 @Getter
@@ -48,6 +51,9 @@ public class ApprovalLine extends BaseTimeEntity<Long> {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "parent")
     private List<ApprovalLine> children = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    private DocumentType documentType;
+
     private Long teamId;
     private String userUniqueId;
 
@@ -59,13 +65,16 @@ public class ApprovalLine extends BaseTimeEntity<Long> {
     private List<DocumentApprovalHistory> approvalHistories = new ArrayList<>();
 
     @Builder
-    private ApprovalLine(Long id, Long teamId, String userUniqueId, String contents, String description) {
+    private ApprovalLine(Long id, DocumentType documentType, Long teamId, String userUniqueId, String contents, String description) {
 
+
+        checkArgument(isNotEmpty(documentType), "documentType must be provided.");
         checkArgument(isNotEmpty(teamId), "teamId must be provided.");
         checkArgument(StringUtils.isNotBlank(userUniqueId), "userUniqueId must be provided.");
         checkArgument(StringUtils.isNotBlank(contents), "contents must be provided.");
 
         this.id = id;
+        this.documentType = documentType;
         this.teamId = teamId;
         this.userUniqueId = userUniqueId;
         this.contents = contents;

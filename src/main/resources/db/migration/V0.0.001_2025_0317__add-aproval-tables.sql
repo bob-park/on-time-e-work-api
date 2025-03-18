@@ -4,6 +4,7 @@ create table approval_lines
     id                 bigserial               not null primary key,
     p_id               bigint,
     team_id            bigint                  not null,
+    document_type      varchar(50)             not null,
     user_unique_id     varchar(41)             not null,
     contents           varchar(50)             not null,
     description        text,

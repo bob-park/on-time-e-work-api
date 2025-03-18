@@ -24,6 +24,7 @@ import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.NotSupportException;
 import com.malgn.common.model.Id;
 import com.malgn.domain.document.entity.VacationDocument;
+import com.malgn.domain.document.entity.type.DocumentType;
 import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.model.CreateVacationDocumentRequest;
 import com.malgn.domain.document.model.SearchVacationDocumentRequest;
@@ -142,6 +143,7 @@ public class VacationDocumentV1Service implements VacationDocumentService {
             DocumentV1Request.builder()
                 .documentId(createdDocument.getId())
                 .teamId(team.id())
+                .documentType(DocumentType.VACATION)
                 .build());
 
         return from(createdDocument);
