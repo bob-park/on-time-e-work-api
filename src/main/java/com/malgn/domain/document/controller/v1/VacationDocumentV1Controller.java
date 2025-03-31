@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.malgn.common.model.Id;
 import com.malgn.domain.document.entity.VacationDocument;
-import com.malgn.domain.document.model.SearchVacationDocumentRequest;
 import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
+import com.malgn.domain.document.model.v1.SearchVacationDocumentV1Request;
 import com.malgn.domain.document.service.v1.VacationDocumentV1Service;
 
 @RequiredArgsConstructor
@@ -36,7 +36,7 @@ public class VacationDocumentV1Controller {
     }
 
     @GetMapping(path = "")
-    public Page<VacationDocumentResponse> search(SearchVacationDocumentRequest searchRequest,
+    public Page<VacationDocumentResponse> search(SearchVacationDocumentV1Request searchRequest,
         @PageableDefault(size = 25, sort = "createdDate", direction = Direction.DESC) Pageable pageable) {
         return documentService.search(searchRequest, pageable);
     }
