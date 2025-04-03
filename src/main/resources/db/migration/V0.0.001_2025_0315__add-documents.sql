@@ -28,7 +28,7 @@ create table work_schedules
     created_by         varchar(200)            not null,
     last_modified_date timestamp,
     last_modified_by   varchar(200)
-)
+);
 
 -- 문서
 create table documents
@@ -55,7 +55,7 @@ create table documents_vacations
     reason            varchar(500)  not null,
 
     foreign key (id) references documents (id)
-)
+);
 
 -- 보상 휴가 사용 목록
 create table users_vacations_used_comp_leaves
@@ -68,4 +68,4 @@ create table users_vacations_used_comp_leaves
 
     foreign key (document_id) references documents_vacations (id),
     foreign key (comp_leave_entry_id) references users_comp_leave_entries (id)
-)
+);

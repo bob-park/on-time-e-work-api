@@ -21,7 +21,7 @@ create table leave_days_policies
     created_by         varchar(200)            not null,
     last_modified_date timestamp,
     last_modified_by   varchar(200)
-)
+);
 
 -- 사용자 연차 정보
 create table users_leave_entries
@@ -35,4 +35,4 @@ create table users_leave_entries
     used_comp_leave_days  numeric(3, 1) default 0     not null,
     created_date          timestamp     default now() not null,
     last_modified_date    timestamp
-)
+);
