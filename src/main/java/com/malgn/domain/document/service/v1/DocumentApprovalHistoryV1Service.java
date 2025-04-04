@@ -39,6 +39,16 @@ public class DocumentApprovalHistoryV1Service implements DocumentApprovalHistory
     private final DocumentApprovalHistoryRepository documentApprovalHistoryRepository;
 
     @Override
+    public DocumentApprovalHistoryResponse getById(Id<DocumentApprovalHistory, Long> id) {
+
+        DocumentApprovalHistory history =
+            documentApprovalHistoryRepository.getHistory(id)
+                .orElseThrow(() -> new NotFoundException(id));
+
+        return from(history, true);
+    }
+
+    @Override
     public Page<DocumentApprovalHistoryResponse> search(SearchDocumentApprovalHistoryRequest searchRequest,
         Pageable pageable) {
 

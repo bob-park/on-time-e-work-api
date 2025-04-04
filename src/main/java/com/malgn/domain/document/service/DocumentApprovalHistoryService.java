@@ -12,6 +12,8 @@ import com.malgn.domain.document.model.SearchDocumentApprovalHistoryRequest;
 
 public interface DocumentApprovalHistoryService {
 
+    DocumentApprovalHistoryResponse getById(Id<DocumentApprovalHistory, Long> id);
+
     Page<DocumentApprovalHistoryResponse> search(SearchDocumentApprovalHistoryRequest searchRequest, Pageable pageable);
 
     DocumentApprovalHistoryResponse approve(Id<DocumentApprovalHistory, Long> id,
