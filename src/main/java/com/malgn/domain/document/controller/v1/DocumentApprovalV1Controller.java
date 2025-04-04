@@ -33,6 +33,10 @@ public class DocumentApprovalV1Controller {
         @PageableDefault(sort = "createdDate", size = 25, direction = Direction.DESC) Pageable pageable) {
         return approvalHistoryService.search(searchRequest, pageable);
     }
+    @GetMapping(path = "{id:\\d+}")
+    public DocumentApprovalHistoryResponse getById(@PathVariable long id) {
+        return approvalHistoryService.getById(Id.of(DocumentApprovalHistory.class, id));
+    }
 
     @PostMapping(path = "{id:\\d+}")
     public DocumentApprovalHistoryResponse approve(@PathVariable long id) {
