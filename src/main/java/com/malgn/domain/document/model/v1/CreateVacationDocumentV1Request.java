@@ -18,10 +18,10 @@ public record CreateVacationDocumentV1Request(String userUniqueId,
                                               LocalDate startDate,
                                               LocalDate endDate,
                                               String reason,
-                                              List<Long> compLeaveEntryIds)
+                                              List<UsedCompLeaveEntryV1Request> compLeaveEntries)
     implements CreateVacationDocumentRequest {
 
     public CreateVacationDocumentV1Request {
-        compLeaveEntryIds = defaultIfNull(compLeaveEntryIds, List.of());
+        compLeaveEntries = defaultIfNull(compLeaveEntries, List.of());
     }
 }

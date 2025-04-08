@@ -63,6 +63,7 @@ create table users_vacations_used_comp_leaves
     id                  bigserial               not null primary key,
     document_id         bigint                  not null,
     comp_leave_entry_id bigint                  not null,
+    used_days           int       default 0     not null,
     created_date        timestamp default now() not null,
     last_modified_date  timestamp,
 

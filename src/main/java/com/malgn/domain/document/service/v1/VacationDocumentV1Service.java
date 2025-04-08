@@ -30,6 +30,7 @@ import com.malgn.domain.document.model.CreateVacationDocumentRequest;
 import com.malgn.domain.document.model.SearchVacationDocumentRequest;
 import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
+import com.malgn.domain.document.model.v1.UsedCompLeaveEntryV1Request;
 import com.malgn.domain.document.model.v1.VacationDocumentV1Response;
 import com.malgn.domain.document.provider.RequestDocumentProvider;
 import com.malgn.domain.document.provider.v1.DocumentV1Request;
@@ -113,24 +114,30 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
         // 보상 휴가 처리
         if (createV1Request.vacationType() == VacationType.COMPENSATORY) {
-            checkArgument(!createV1Request.compLeaveEntryIds().isEmpty(), "compLeaveEntryIds must be provided.");
+            checkArgument(!createV1Request.compLeaveEntries().isEmpty(), "compLeaveEntries must be provided.");
 
             // 보상 휴가 일수 확인
             BigDecimal tempUsedDays = usedDays.subtract(BigDecimal.ZERO);
 
-            for (Long compLeaveEntryId : createV1Request.compLeaveEntryIds()) {
+            for (UsedCompLeaveEntryV1Request usedCompLeaveEntryRequest : createV1Request.compLeaveEntries()) {
                 UserCompLeaveEntry userCompLeaveEntry =
-                    userCompLeaveEntryRepository.getUserEntry(compLeaveEntryId, createV1Request.userUniqueId())
-                        .orElseThrow(() -> new NotFoundException(UserCompLeaveEntry.class, compLeaveEntryId));
+                    userCompLeaveEntryRepository.getUserEntry(
+                            usedCompLeaveEntryRequest.compLeaveEntryId(),
+                            createV1Request.userUniqueId())
+                        .orElseThrow(
+                            () -> new NotFoundException(UserCompLeaveEntry.class, usedCompLeaveEntryRequest.compLeaveEntryId()));
 
-                UserVacationUsedCompLeave createdUsedCompLeave = new UserVacationUsedCompLeave();
+                UserVacationUsedCompLeave createdUsedCompLeave =
+                    UserVacationUsedCompLeave.builder()
+                        .usedDays(usedCompLeaveEntryRequest.usedDays())
+                        .build();
 
                 createdDocument.addUsedCompLeave(createdUsedCompLeave);
                 userCompLeaveEntry.addUsedCompLeave(createdUsedCompLeave);
 
                 userVacationUsedCompLeaveRepository.save(createdUsedCompLeave);
 
-                log.debug("used user vacation used comp leave entry id {}", compLeaveEntryId);
+                log.debug("used user vacation used comp leave entry id {}", usedCompLeaveEntryRequest.compLeaveEntryId());
 
                 tempUsedDays = tempUsedDays.subtract(userCompLeaveEntry.availableDays());
             }

@@ -1,5 +1,7 @@
 package com.malgn.domain.user.entity;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -9,7 +11,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.ToString.Exclude;
 
@@ -18,6 +23,7 @@ import com.malgn.domain.document.entity.VacationDocument;
 
 @ToString
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "users_vacations_used_comp_leaves")
 public class UserVacationUsedCompLeave extends BaseTimeEntity<Long> {
@@ -35,6 +41,14 @@ public class UserVacationUsedCompLeave extends BaseTimeEntity<Long> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comp_leave_entry_id")
     private UserCompLeaveEntry compLeaveEntry;
+
+    private BigDecimal usedDays;
+
+    @Builder
+    private UserVacationUsedCompLeave(Long id, BigDecimal usedDays) {
+        this.id = id;
+        this.usedDays = usedDays;
+    }
 
     /*
      * 편의 메서드
