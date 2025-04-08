@@ -60,11 +60,11 @@ create table documents_vacations
 -- 보상 휴가 사용 목록
 create table users_vacations_used_comp_leaves
 (
-    id                  bigserial               not null primary key,
-    document_id         bigint                  not null,
-    comp_leave_entry_id bigint                  not null,
-    used_days           int       default 0     not null,
-    created_date        timestamp default now() not null,
+    id                  bigserial                   not null primary key,
+    document_id         bigint                      not null,
+    comp_leave_entry_id bigint                      not null,
+    used_days           numeric(3, 1) default 0     not null,
+    created_date        timestamp     default now() not null,
     last_modified_date  timestamp,
 
     foreign key (document_id) references documents_vacations (id),

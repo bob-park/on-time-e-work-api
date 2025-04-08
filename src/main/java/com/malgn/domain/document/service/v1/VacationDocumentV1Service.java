@@ -120,16 +120,28 @@ public class VacationDocumentV1Service implements VacationDocumentService {
             BigDecimal tempUsedDays = usedDays.subtract(BigDecimal.ZERO);
 
             for (UsedCompLeaveEntryV1Request usedCompLeaveEntryRequest : createV1Request.compLeaveEntries()) {
+
+                if (tempUsedDays.compareTo(BigDecimal.ZERO) == 0) {
+                    break;
+                }
+
                 UserCompLeaveEntry userCompLeaveEntry =
                     userCompLeaveEntryRepository.getUserEntry(
                             usedCompLeaveEntryRequest.compLeaveEntryId(),
                             createV1Request.userUniqueId())
                         .orElseThrow(
-                            () -> new NotFoundException(UserCompLeaveEntry.class, usedCompLeaveEntryRequest.compLeaveEntryId()));
+                            () -> new NotFoundException(UserCompLeaveEntry.class,
+                                usedCompLeaveEntryRequest.compLeaveEntryId()));
+
+                BigDecimal usedCompLeaveDays = userCompLeaveEntry.availableDays().subtract(tempUsedDays);
+
+                usedCompLeaveDays =
+                    usedCompLeaveDays.compareTo(BigDecimal.ZERO) <= 0 ?
+                        userCompLeaveEntry.availableDays() : tempUsedDays;
 
                 UserVacationUsedCompLeave createdUsedCompLeave =
                     UserVacationUsedCompLeave.builder()
-                        .usedDays(usedCompLeaveEntryRequest.usedDays())
+                        .usedDays(usedCompLeaveDays)
                         .build();
 
                 createdDocument.addUsedCompLeave(createdUsedCompLeave);
@@ -137,9 +149,14 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
                 userVacationUsedCompLeaveRepository.save(createdUsedCompLeave);
 
-                log.debug("used user vacation used comp leave entry id {}", usedCompLeaveEntryRequest.compLeaveEntryId());
+                log.debug("used user vacation used comp leave entry id {}",
+                    usedCompLeaveEntryRequest.compLeaveEntryId());
 
                 tempUsedDays = tempUsedDays.subtract(userCompLeaveEntry.availableDays());
+
+                if (tempUsedDays.compareTo(BigDecimal.ZERO) < 0) {
+                    tempUsedDays = BigDecimal.ZERO;
+                }
             }
 
             checkArgument(tempUsedDays.compareTo(BigDecimal.ZERO) <= 0, "invalid compensatory leave count..");
@@ -229,7 +246,7 @@ public class VacationDocumentV1Service implements VacationDocumentService {
         switch (vacationType) {
             case GENERAL -> availableDays = userLeaveEntry.availableDays();
             case COMPENSATORY -> availableDays = userLeaveEntry.availableCompDays();
-            case OFFICIAL -> availableDays = usedDays.add(BigDecimal.ZERO);
+            case OFFICIAL -> availableDays = usedDays.add(java.math.BigDecimal.ZERO);
             default -> throw new NotSupportException(vacationType.name());
         }
 
