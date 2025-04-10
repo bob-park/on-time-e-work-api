@@ -59,7 +59,6 @@ public class VacationDocumentV1Service implements VacationDocumentService {
     private static final List<Integer> DEFAULT_FAMILY_DAYS_WEEKS = List.of(1, 3);
 
     private final UserFeignClient userClient;
-    private final TeamFeignClient teamClient;
 
     private final RequestDocumentProvider requestDocumentProvider;
 
@@ -81,7 +80,6 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
         String currentUserId = AuthUtils.getCurrentUserId();
         UserResponse user = userClient.getById(createV1Request.userUniqueId());
-        TeamResponse team = teamClient.getTeamByUserUniqueId(user.uniqueId());
 
         checkArgument(StringUtils.equals(currentUserId, user.userId()), "not match user and account.");
 
@@ -165,7 +163,7 @@ public class VacationDocumentV1Service implements VacationDocumentService {
         requestDocumentProvider.request(
             DocumentV1Request.builder()
                 .documentId(createdDocument.getId())
-                .teamId(team.id())
+                .teamId(user.team().id())
                 .documentType(DocumentType.VACATION)
                 .build());
 
