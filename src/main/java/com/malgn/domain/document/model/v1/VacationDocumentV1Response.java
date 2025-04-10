@@ -7,18 +7,15 @@ import java.util.List;
 
 import lombok.Builder;
 
-import com.malgn.domain.approval.model.ApprovalLineResponse;
-import com.malgn.domain.approval.model.v1.ApprovalLineV1Response;
-import com.malgn.domain.document.entity.DocumentApprovalHistory;
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.entity.type.DocumentStatus;
 import com.malgn.domain.document.entity.type.DocumentType;
 import com.malgn.domain.document.entity.type.VacationSubType;
 import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.model.DocumentApprovalHistoryResponse;
-import com.malgn.domain.user.model.UserCompLeaveEntryResponse;
 import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
+import com.malgn.domain.user.model.UserCompLeaveEntryResponse;
 import com.malgn.domain.user.model.v1.UserCompLeaveEntryV1Response;
 
 @Builder
@@ -32,7 +29,7 @@ public record VacationDocumentV1Response(Long id,
                                          LocalDate endDate,
                                          BigDecimal usedDays,
                                          String reason,
-                                         List<UserCompLeaveEntryResponse> usedCompLeaveEntries,
+                                         List<UsedCompLeaveEntryResponse> usedCompLeaveEntries,
                                          List<DocumentApprovalHistoryResponse> approvalHistories,
                                          LocalDateTime createdDate,
                                          String createdBy,
@@ -58,8 +55,12 @@ public record VacationDocumentV1Response(Long id,
             .reason(entity.getReason())
             .usedCompLeaveEntries(detail ?
                 entity.getUsedCompLeaves().stream()
-                    .map(UserVacationUsedCompLeave::getCompLeaveEntry)
-                    .map(UserCompLeaveEntryV1Response::from)
+                    .map(item ->
+                        UsedCompLeaveEntryResponse.builder()
+                            .id(item.getId())
+                            .compLeaveEntry(UserCompLeaveEntryV1Response.from(item.getCompLeaveEntry()))
+                            .usedDays(item.getUsedDays())
+                            .build())
                     .toList()
                 : null)
             .approvalHistories(detail ?
