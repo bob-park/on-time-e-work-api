@@ -4,6 +4,7 @@ create table users_signatures
     id                 bigserial               not null primary key,
     user_unique_id     varchar(41)             not null,
     signature_image    bytea,
+    file_extension     varchar(20),
     created_date       timestamp default now() not null,
     created_by         varchar(50)             not null,
     last_modified_date timestamp,
