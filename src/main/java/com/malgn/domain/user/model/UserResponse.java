@@ -8,5 +8,6 @@ import com.malgn.domain.team.model.TeamResponse;
 public record UserResponse(String uniqueId,
                            String userId,
                            String username,
-                           TeamResponse team) {
+                           TeamResponse team,
+                           PositionResponse position) {
 }

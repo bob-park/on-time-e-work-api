@@ -1,6 +1,5 @@
 package com.malgn.domain.document.processor.v1;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.temporal.ChronoField;
@@ -8,8 +7,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.checkerframework.checker.units.qual.A;
 
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.NotSupportException;
@@ -27,6 +24,7 @@ import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.processor.ApprovalProcessor;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
+import com.malgn.domain.notification.sender.DelegatingNotificationSender;
 import com.malgn.domain.user.entity.UserLeaveEntry;
 import com.malgn.domain.user.exception.OverLeaveEntryException;
 import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
@@ -44,6 +42,8 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
     private final VacationDocumentRepository documentRepository;
     private final UserLeaveEntryRepository userLeaveEntryRepository;
     private final UserCompLeaveEntryRepository userCompLeaveEntryRepository;
+
+    private final DelegatingNotificationSender notificationSender;
 
     @Override
     public boolean isSupport(DocumentType documentType) {
@@ -73,6 +73,15 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
             createdHistory = approvalHistoryRepository.save(createdHistory);
 
             log.debug("created next approval history. ({})", createdHistory);
+
+            try {
+                notificationSender.send(
+                    nextLine.getUserUniqueId(),
+                    Id.of(Document.class, document.getId()),
+                    document.getType());
+            } catch (Exception e) {
+                log.error("Failed send message - {}", e.getMessage(), e);
+            }
 
         } else {
 

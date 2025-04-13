@@ -26,6 +26,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.malgn.common.model.Id;
 import com.malgn.common.querydsl.model.QueryDslPath;
 import com.malgn.common.querydsl.utils.QueryRepositoryUtils;
+import com.malgn.domain.document.entity.Document;
 import com.malgn.domain.document.entity.QVacationDocument;
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.entity.type.DocumentStatus;
@@ -62,7 +63,7 @@ public class VacationDocumentQueryRepositoryImpl implements VacationDocumentQuer
     }
 
     @Override
-    public Optional<VacationDocument> getDocumentById(Id<VacationDocument, Long> id) {
+    public Optional<VacationDocument> getDocumentById(Id<? extends Document, Long> id) {
         return Optional.ofNullable(
             query.selectFrom(vacationDocument)
                 .leftJoin(vacationDocument.usedCompLeaves, userVacationUsedCompLeave).fetchJoin()

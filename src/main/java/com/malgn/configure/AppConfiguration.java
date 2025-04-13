@@ -15,13 +15,20 @@ import com.malgn.domain.document.provider.v1.RequestDocumentV1Provider;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.DocumentRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
+import com.malgn.domain.notification.sender.DelegatingNotificationSender;
+import com.malgn.domain.notification.sender.VacationDocumentNotificationSender;
+import com.malgn.domain.user.feign.UserFeignClient;
 import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
+import com.malgn.notification.client.NotificationClient;
 
 @RequiredArgsConstructor
 @EnableScheduling
 @Configuration
 public class AppConfiguration {
+
+    private final NotificationClient notificationClient;
+    private final UserFeignClient userFeignClient;
 
     private final ApprovalLineRepository approvalLineRepository;
     private final DocumentRepository documentRepository;
@@ -33,7 +40,11 @@ public class AppConfiguration {
 
     @Bean
     public RequestDocumentProvider requestDocumentProvider() {
-        return new RequestDocumentV1Provider(approvalLineRepository, documentRepository, historyRepository);
+        return new RequestDocumentV1Provider(
+            approvalLineRepository,
+            documentRepository,
+            historyRepository,
+            delegatingNotificationSender());
     }
 
     @Bean
@@ -46,9 +57,23 @@ public class AppConfiguration {
                 historyRepository,
                 vacationDocumentRepository,
                 leaveEntryRepository,
-                compLeaveEntryRepository));
+                compLeaveEntryRepository,
+                delegatingNotificationSender()));
 
         return processor;
+    }
+
+    @Bean
+    public DelegatingNotificationSender delegatingNotificationSender() {
+        DelegatingNotificationSender sender = new DelegatingNotificationSender();
+
+        sender.addSender(
+            new VacationDocumentNotificationSender(
+                notificationClient,
+                userFeignClient,
+                vacationDocumentRepository));
+
+        return sender;
     }
 
 }

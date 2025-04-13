@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.malgn.common.exception.NotFoundException;
+import com.malgn.common.model.Id;
 import com.malgn.domain.approval.entity.ApprovalLine;
 import com.malgn.domain.approval.repository.ApprovalLineRepository;
 import com.malgn.domain.document.entity.Document;
@@ -17,6 +18,7 @@ import com.malgn.domain.document.provider.DocumentRequest;
 import com.malgn.domain.document.provider.RequestDocumentProvider;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.DocumentRepository;
+import com.malgn.domain.notification.sender.DelegatingNotificationSender;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,6 +27,8 @@ public class RequestDocumentV1Provider implements RequestDocumentProvider {
     private final ApprovalLineRepository approvalLineRepository;
     private final DocumentRepository documentRepository;
     private final DocumentApprovalHistoryRepository historyRepository;
+
+    private final DelegatingNotificationSender notificationSender;
 
     @Transactional
     @Override
@@ -52,6 +56,15 @@ public class RequestDocumentV1Provider implements RequestDocumentProvider {
         createdHistory = historyRepository.save(createdHistory);
 
         log.debug("created document approval history. ({})", createdHistory);
+
+        try {
+            notificationSender.send(
+                line.getUserUniqueId(),
+                Id.of(Document.class, document.getId()),
+                document.getType());
+        } catch (Exception e) {
+            log.error("Failed send message - {}", e.getMessage(), e);
+        }
 
     }
 }
