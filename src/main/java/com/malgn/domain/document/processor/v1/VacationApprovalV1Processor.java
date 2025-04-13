@@ -1,5 +1,6 @@
 package com.malgn.domain.document.processor.v1;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.temporal.ChronoField;
@@ -148,10 +149,15 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
                 .append(parseType(vacationDocument.getVacationType(), vacationDocument.getVacationSubType()))
             ;
 
-            calendarProvider.addEvent(
-                calendarEventNameBuilder.toString(),
-                vacationDocument.getStartDate(),
-                vacationDocument.getEndDate());
+            try {
+                calendarProvider.addEvent(
+                    calendarEventNameBuilder.toString(),
+                    vacationDocument.getStartDate(),
+                    vacationDocument.getEndDate());
+            } catch (ServiceRuntimeException e) {
+                log.warn("Failed to added calender event... - {}", e.getMessage(), e);
+            }
+
         }
 
         history.approve();
