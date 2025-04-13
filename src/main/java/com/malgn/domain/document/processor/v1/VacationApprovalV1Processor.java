@@ -24,10 +24,12 @@ import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.processor.ApprovalProcessor;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
+import com.malgn.domain.google.provider.GoogleCalendarProvider;
 import com.malgn.domain.notification.sender.DelegatingNotificationSender;
 import com.malgn.domain.user.entity.UserLeaveEntry;
 import com.malgn.domain.user.exception.OverLeaveEntryException;
-import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
+import com.malgn.domain.user.feign.UserFeignClient;
+import com.malgn.domain.user.model.UserResponse;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
 
 @Slf4j
@@ -41,9 +43,12 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
     private final DocumentApprovalHistoryRepository approvalHistoryRepository;
     private final VacationDocumentRepository documentRepository;
     private final UserLeaveEntryRepository userLeaveEntryRepository;
-    private final UserCompLeaveEntryRepository userCompLeaveEntryRepository;
+
+    private final UserFeignClient userClient;
 
     private final DelegatingNotificationSender notificationSender;
+
+    private final GoogleCalendarProvider calendarProvider;
 
     @Override
     public boolean isSupport(DocumentType documentType) {
@@ -130,6 +135,23 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
 
             // 최종 승인인 경우 휴가 감소 처리
             log.debug("final approval document... ({})", document);
+
+            // google calendar 추가
+            UserResponse user = userClient.getById(vacationDocument.getUserUniqueId());
+            StringBuilder calendarEventNameBuilder = new StringBuilder();
+
+            calendarEventNameBuilder
+                .append(user.username())
+                .append(" ")
+                .append(user.position().name())
+                .append(" ")
+                .append(parseType(vacationDocument.getVacationType(), vacationDocument.getVacationSubType()))
+            ;
+
+            calendarProvider.addEvent(
+                calendarEventNameBuilder.toString(),
+                vacationDocument.getStartDate(),
+                vacationDocument.getEndDate());
         }
 
         history.approve();
@@ -217,5 +239,31 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
                 return AttendanceScheduleFeignClient.DAY_OFF;
             }
         }
+    }
+
+    private String parseType(VacationType type, VacationSubType subType) {
+
+        String result = "";
+
+        switch (type) {
+            case OFFICIAL -> result = "공가";
+            case COMPENSATORY -> result = "보상 휴가";
+            case GENERAL -> result = "연차";
+            default -> {
+                return "이건 뭘까?";
+            }
+        }
+
+        if (subType != null) {
+            switch (subType) {
+                case AM_HALF_DAY_OFF -> result += "(오전)";
+                case PM_HALF_DAY_OFF -> result += "(오후)";
+                default -> {
+                    // ignore
+                }
+            }
+        }
+
+        return result;
     }
 }

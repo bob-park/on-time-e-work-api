@@ -2,10 +2,12 @@ package com.malgn.configure;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import com.malgn.configure.proerties.AppProperties;
 import com.malgn.domain.approval.repository.ApprovalLineRepository;
 import com.malgn.domain.attendance.feign.AttendanceScheduleFeignClient;
 import com.malgn.domain.document.processor.DelegatingApprovalProcessor;
@@ -15,6 +17,7 @@ import com.malgn.domain.document.provider.v1.RequestDocumentV1Provider;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.DocumentRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
+import com.malgn.domain.google.provider.GoogleCalendarProvider;
 import com.malgn.domain.notification.sender.DelegatingNotificationSender;
 import com.malgn.domain.notification.sender.VacationDocumentNotificationSender;
 import com.malgn.domain.user.feign.UserFeignClient;
@@ -25,7 +28,10 @@ import com.malgn.notification.client.NotificationClient;
 @RequiredArgsConstructor
 @EnableScheduling
 @Configuration
+@EnableConfigurationProperties(AppProperties.class)
 public class AppConfiguration {
+
+    private final AppProperties properties;
 
     private final NotificationClient notificationClient;
     private final UserFeignClient userFeignClient;
@@ -57,8 +63,9 @@ public class AppConfiguration {
                 historyRepository,
                 vacationDocumentRepository,
                 leaveEntryRepository,
-                compLeaveEntryRepository,
-                delegatingNotificationSender()));
+                userFeignClient,
+                delegatingNotificationSender(),
+                googleCalendarProvider()));
 
         return processor;
     }
@@ -74,6 +81,11 @@ public class AppConfiguration {
                 vacationDocumentRepository));
 
         return sender;
+    }
+
+    @Bean
+    public GoogleCalendarProvider googleCalendarProvider() {
+        return new GoogleCalendarProvider(properties.google());
     }
 
 }
