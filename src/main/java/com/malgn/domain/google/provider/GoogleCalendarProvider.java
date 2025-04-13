@@ -56,6 +56,7 @@ public class GoogleCalendarProvider {
                 new GoogleAuthorizationCodeFlow.Builder(httpTransport, jsonFactory, clientSecrets, SCOPES)
                     .setDataStoreFactory(new FileDataStoreFactory(properties.storeLocation().getFile()))
                     .setAccessType("offline")
+                    .setApprovalPrompt("force")
                     .build();
 
             LocalServerReceiver serverReceiver =
@@ -78,6 +79,7 @@ public class GoogleCalendarProvider {
                 new Calendar.Builder(httpTransport, jsonFactory, credential)
                     .setApplicationName(APPLICATION_NAME)
                     .build();
+
         } catch (IOException | GeneralSecurityException e) {
             throw new ServiceRuntimeException(e);
         }
