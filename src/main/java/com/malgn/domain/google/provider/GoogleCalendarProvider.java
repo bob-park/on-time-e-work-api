@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -90,13 +91,22 @@ public class GoogleCalendarProvider {
 
         Event event = new Event().setSummary(eventName);
 
+        Period period = Period.between(startDate, endDate);
+
+        long plusDays = 0;
+
+        if (period.getDays() > 0) {
+            plusDays++;
+        }
+
         EventDateTime start =
             new EventDateTime()
                 .setDate(new DateTime(startDate.format(DateTimeFormatter.ISO_DATE)));
 
+        // 종일 이벤트인 경우 end 정각까지로 인식하는거 같음
         EventDateTime end =
             new EventDateTime()
-                .setDate(new DateTime(endDate.format(DateTimeFormatter.ISO_DATE)));
+                .setDate(new DateTime(endDate.plusDays(plusDays).format(DateTimeFormatter.ISO_DATE)));
 
         event.setStart(start).setEnd(end);
 
