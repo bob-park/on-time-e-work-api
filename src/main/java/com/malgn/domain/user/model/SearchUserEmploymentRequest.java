@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.malgn.domain.user.entity.type.EmployStatus;
 
-public interface SearchUserEmployRequest {
+public interface SearchUserEmploymentRequest {
 
     String userUniqueId();
 

@@ -27,16 +27,12 @@ import com.malgn.common.model.Id;
 import com.malgn.common.querydsl.model.QueryDslPath;
 import com.malgn.common.querydsl.utils.QueryRepositoryUtils;
 import com.malgn.domain.document.entity.Document;
-import com.malgn.domain.document.entity.QVacationDocument;
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.entity.type.DocumentStatus;
 import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.model.SearchVacationDocumentRequest;
 import com.malgn.domain.document.model.v1.SearchVacationDocumentV1Request;
 import com.malgn.domain.document.repository.query.VacationDocumentQueryRepository;
-import com.malgn.domain.user.entity.QUserCompLeaveEntry;
-import com.malgn.domain.user.entity.QUserVacationUsedCompLeave;
-import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
 
 @RequiredArgsConstructor
 public class VacationDocumentQueryRepositoryImpl implements VacationDocumentQueryRepository {
@@ -86,7 +82,7 @@ public class VacationDocumentQueryRepositoryImpl implements VacationDocumentQuer
                 .and(eqStatus(searchV1Request.status()))
                 .and(eqVacationType(searchV1Request.vacationType()))
                 .and(goeStartDateFrom(searchV1Request.startDateFrom()))
-                .and(loeStartDateTo(searchV1Request.startDateTo()));
+                .and(loeEndDateTo(searchV1Request.endDateTo()));
 
         }
 
@@ -109,8 +105,8 @@ public class VacationDocumentQueryRepositoryImpl implements VacationDocumentQuer
         return fromDate != null ? vacationDocument.startDate.goe(fromDate) : null;
     }
 
-    private BooleanExpression loeStartDateTo(LocalDate toDate) {
-        return toDate != null ? vacationDocument.startDate.loe(toDate) : null;
+    private BooleanExpression loeEndDateTo(LocalDate toDate) {
+        return toDate != null ? vacationDocument.endDate.loe(toDate) : null;
     }
 
     /*

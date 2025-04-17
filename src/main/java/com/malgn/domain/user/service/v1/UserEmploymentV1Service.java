@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.malgn.domain.user.entity.UserEmployment;
-import com.malgn.domain.user.model.SearchUserEmployRequest;
+import com.malgn.domain.user.model.SearchUserEmploymentRequest;
 import com.malgn.domain.user.model.UserEmploymentResponse;
 import com.malgn.domain.user.model.v1.UserEmploymentV1Response;
 import com.malgn.domain.user.repository.UserEmploymentRepository;
@@ -24,7 +24,7 @@ public class UserEmploymentV1Service implements UserEmploymentService {
     private final UserEmploymentRepository userEmploymentRepository;
 
     @Override
-    public Page<UserEmploymentResponse> search(SearchUserEmployRequest searchRequest, Pageable pageable) {
+    public Page<UserEmploymentResponse> search(SearchUserEmploymentRequest searchRequest, Pageable pageable) {
 
         Page<UserEmployment> result = userEmploymentRepository.search(searchRequest, pageable);
 

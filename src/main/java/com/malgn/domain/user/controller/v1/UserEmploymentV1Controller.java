@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.malgn.domain.user.model.UserEmploymentResponse;
-import com.malgn.domain.user.model.v1.SearchUserEmployV1Request;
+import com.malgn.domain.user.model.v1.SearchUserEmploymentV1Request;
 import com.malgn.domain.user.service.v1.UserEmploymentV1Service;
 
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class UserEmploymentV1Controller {
     private final UserEmploymentV1Service userEmploymentService;
 
     @GetMapping(path = "")
-    public Page<UserEmploymentResponse> search(SearchUserEmployV1Request searchRequest,
+    public Page<UserEmploymentResponse> search(SearchUserEmploymentV1Request searchRequest,
         @PageableDefault(size = 25, direction = Direction.DESC, sort = "createdDate") Pageable pageable) {
         return userEmploymentService.search(searchRequest, pageable);
     }

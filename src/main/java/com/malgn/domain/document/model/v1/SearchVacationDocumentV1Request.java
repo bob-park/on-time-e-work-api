@@ -10,6 +10,6 @@ public record SearchVacationDocumentV1Request(String userUniqueId,
                                               DocumentStatus status,
                                               VacationType vacationType,
                                               LocalDate startDateFrom,
-                                              LocalDate startDateTo)
+                                              LocalDate endDateTo)
     implements SearchVacationDocumentRequest {
 }

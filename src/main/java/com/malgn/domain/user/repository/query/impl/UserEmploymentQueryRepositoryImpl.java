@@ -24,8 +24,8 @@ import com.malgn.common.querydsl.model.QueryDslPath;
 import com.malgn.common.querydsl.utils.QueryRepositoryUtils;
 import com.malgn.domain.user.entity.UserEmployment;
 import com.malgn.domain.user.entity.type.EmployStatus;
-import com.malgn.domain.user.model.SearchUserEmployRequest;
-import com.malgn.domain.user.model.v1.SearchUserEmployV1Request;
+import com.malgn.domain.user.model.SearchUserEmploymentRequest;
+import com.malgn.domain.user.model.v1.SearchUserEmploymentV1Request;
 import com.malgn.domain.user.repository.query.UserEmploymentQueryRepository;
 
 @RequiredArgsConstructor
@@ -42,7 +42,7 @@ public class UserEmploymentQueryRepositoryImpl implements UserEmploymentQueryRep
     }
 
     @Override
-    public Page<UserEmployment> search(SearchUserEmployRequest request, Pageable pageable) {
+    public Page<UserEmployment> search(SearchUserEmploymentRequest request, Pageable pageable) {
 
         List<UserEmployment> content =
             query.selectFrom(userEmployment)
@@ -63,13 +63,13 @@ public class UserEmploymentQueryRepositoryImpl implements UserEmploymentQueryRep
     /*
      * mapping
      */
-    private Predicate mappingCondition(SearchUserEmployRequest request) {
+    private Predicate mappingCondition(SearchUserEmploymentRequest request) {
 
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (request.getClass().isAssignableFrom(SearchUserEmployV1Request.class)) {
+        if (request.getClass().isAssignableFrom(SearchUserEmploymentV1Request.class)) {
             // v1
-            SearchUserEmployV1Request searchV1Request = (SearchUserEmployV1Request)request;
+            SearchUserEmploymentV1Request searchV1Request = (SearchUserEmploymentV1Request)request;
 
             builder.and(eqUserUniqueId(searchV1Request.userUniqueId()))
                 .and(goeEffectiveDateFrom(searchV1Request.effectiveDateFrom()))

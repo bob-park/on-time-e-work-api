@@ -15,6 +15,6 @@ public interface SearchVacationDocumentRequest {
 
     LocalDate startDateFrom();
 
-    LocalDate startDateTo();
+    LocalDate endDateTo();
 
 }
