@@ -28,10 +28,13 @@ import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.google.provider.GoogleCalendarProvider;
 import com.malgn.domain.notification.sender.DelegatingNotificationSender;
 import com.malgn.domain.user.entity.UserLeaveEntry;
+import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
 import com.malgn.domain.user.exception.OverLeaveEntryException;
 import com.malgn.domain.user.feign.UserFeignClient;
 import com.malgn.domain.user.model.UserResponse;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
+import com.malgn.notification.client.NotificationClient;
+import com.malgn.notification.model.SendNotificationMessageRequest;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,6 +48,7 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
     private final VacationDocumentRepository documentRepository;
     private final UserLeaveEntryRepository userLeaveEntryRepository;
 
+    private final NotificationClient notiClient;
     private final UserFeignClient userClient;
 
     private final DelegatingNotificationSender notificationSender;
@@ -108,7 +112,13 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
             try {
                 switch (vacationType) {
                     case GENERAL -> leaveEntry.useLeaveDays(vacationDocument.getUsedDays());
-                    case COMPENSATORY -> leaveEntry.useCompLeaveDays(vacationDocument.getUsedDays());
+                    case COMPENSATORY -> {
+                        leaveEntry.useCompLeaveDays(vacationDocument.getUsedDays());
+
+                        for (UserVacationUsedCompLeave usedCompLeave : vacationDocument.getUsedCompLeaves()) {
+                            usedCompLeave.getCompLeaveEntry().addUsedDays(usedCompLeave.getUsedDays());
+                        }
+                    }
                     case OFFICIAL -> {
                         // ignore
                     }
@@ -146,8 +156,7 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
                 .append(" ")
                 .append(user.position().name())
                 .append(" ")
-                .append(parseType(vacationDocument.getVacationType(), vacationDocument.getVacationSubType()))
-            ;
+                .append(parseType(vacationDocument.getVacationType(), vacationDocument.getVacationSubType()));
 
             try {
                 calendarProvider.addEvent(
@@ -158,6 +167,7 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
                 log.warn("Failed to added calender event... - {}", e.getMessage(), e);
             }
 
+            sendResultNotification(document);
         }
 
         history.approve();
@@ -180,7 +190,25 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
 
         log.debug("rejected history. ({})", history);
 
+        sendResultNotification(document);
+
         return history;
+    }
+
+    private void sendResultNotification(Document document) {
+        try {
+            SendNotificationMessageRequest message =
+                SendNotificationMessageRequest.builder()
+                    .displayMessage(parseDisplayMessage(document))
+                    .fields(List.of())
+                    .build();
+
+            notiClient.sendUserNotification(document.getUserUniqueId(), message);
+
+            log.debug("sent notification message...");
+        } catch (Exception e) {
+            throw new ServiceRuntimeException(e);
+        }
     }
 
     private void addAttendanceSchedule(VacationDocument vacation) {
@@ -271,5 +299,24 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
         }
 
         return result;
+    }
+
+    private String parseDisplayMessage(Document document) {
+
+        StringBuilder builder = new StringBuilder();
+        UserResponse user = userClient.getById(document.getUserUniqueId());
+
+        builder.append(user.team().name())
+            .append(" ")
+            .append(user.username())
+            .append(" ")
+            .append(user.position().name())
+            .append(" 이(가) 신청하신 ")
+            .append(document.getType().getDisplayName())
+            .append(" 문서가 ")
+            .append(document.getStatus().getDisplayName())
+            .append(" 되었습니다.");
+
+        return builder.toString();
     }
 }

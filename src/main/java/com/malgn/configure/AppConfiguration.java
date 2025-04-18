@@ -65,6 +65,7 @@ public class AppConfiguration {
                 historyRepository,
                 vacationDocumentRepository,
                 leaveEntryRepository,
+                notificationClient,
                 userFeignClient,
                 delegatingNotificationSender(),
                 googleCalendarProvider()));

@@ -83,4 +83,8 @@ public class UserCompLeaveEntry extends BaseEntity<Long> {
     public void restoreUsedDays(BigDecimal restoreDays) {
         this.usedDays = getUsedDays().subtract(restoreDays);
     }
+
+    public void addUsedDays(BigDecimal usedDays) {
+        this.usedDays = getUsedDays().add(usedDays);
+    }
 }
