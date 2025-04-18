@@ -33,6 +33,7 @@ import com.malgn.domain.document.entity.DocumentApprovalHistory;
 import com.malgn.domain.document.entity.QDocument;
 import com.malgn.domain.document.entity.QDocumentApprovalHistory;
 import com.malgn.domain.document.entity.type.ApprovalStatus;
+import com.malgn.domain.document.entity.type.DocumentStatus;
 import com.malgn.domain.document.model.RejectDocumentRequest;
 import com.malgn.domain.document.model.SearchDocumentApprovalHistoryRequest;
 import com.malgn.domain.document.model.v1.SearchDocumentApprovalHistoryV1Request;
@@ -59,7 +60,9 @@ public class DocumentApprovalHistoryQueryRepositoryImpl implements DocumentAppro
         List<DocumentApprovalHistory> content =
             query.selectFrom(documentApprovalHistory)
                 .join(documentApprovalHistory.document, document).fetchJoin()
-                .where(mappingCondition(searchRequest))
+                .where(
+                    document.status.notIn(DocumentStatus.CANCELLED),
+                    mappingCondition(searchRequest))
                 .orderBy(sort(pageable))
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())

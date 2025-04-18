@@ -12,7 +12,9 @@ import com.malgn.domain.approval.repository.ApprovalLineRepository;
 import com.malgn.domain.attendance.feign.AttendanceScheduleFeignClient;
 import com.malgn.domain.document.processor.DelegatingApprovalProcessor;
 import com.malgn.domain.document.processor.v1.VacationApprovalV1Processor;
+import com.malgn.domain.document.provider.DelegatingCancelDocumentProvider;
 import com.malgn.domain.document.provider.RequestDocumentProvider;
+import com.malgn.domain.document.provider.v1.CancelVacationV1Provider;
 import com.malgn.domain.document.provider.v1.RequestDocumentV1Provider;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.DocumentRepository;
@@ -86,6 +88,15 @@ public class AppConfiguration {
     @Bean
     public GoogleCalendarProvider googleCalendarProvider() {
         return new GoogleCalendarProvider(properties.google());
+    }
+
+    @Bean
+    public DelegatingCancelDocumentProvider delegatingCancelDocumentProvider() {
+        DelegatingCancelDocumentProvider provider = new DelegatingCancelDocumentProvider();
+
+        provider.add(new CancelVacationV1Provider(vacationDocumentRepository, leaveEntryRepository));
+
+        return provider;
     }
 
 }

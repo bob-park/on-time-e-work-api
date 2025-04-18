@@ -60,4 +60,8 @@ public class UserVacationUsedCompLeave extends BaseTimeEntity<Long> {
     public void updateCompLeaveEntry(UserCompLeaveEntry compLeaveEntry) {
         this.compLeaveEntry = compLeaveEntry;
     }
+
+    public void updateUsedDays(BigDecimal usedDays) {
+        this.usedDays = usedDays;
+    }
 }

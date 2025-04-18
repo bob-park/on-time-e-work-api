@@ -84,4 +84,8 @@ public abstract class Document extends BaseEntity<Long> {
     public void reject() {
         this.status = DocumentStatus.REJECTED;
     }
+
+    public void cancel() {
+        this.status = DocumentStatus.CANCELLED;
+    }
 }

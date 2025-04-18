@@ -79,6 +79,10 @@ public class UserLeaveEntry extends BaseTimeEntity<Long> {
         this.usedLeaveDays = getUsedLeaveDays().add(useDays);
     }
 
+    public void restoreLeaveDays(BigDecimal restoreDays) {
+        this.usedLeaveDays = getUsedLeaveDays().subtract(restoreDays);
+    }
+
     public void useCompLeaveDays(BigDecimal useDays) {
 
         if (availableCompDays().subtract(useDays).compareTo(BigDecimal.ZERO) < 0) {
@@ -86,5 +90,9 @@ public class UserLeaveEntry extends BaseTimeEntity<Long> {
         }
 
         this.usedCompLeaveDays = getUsedCompLeaveDays().add(useDays);
+    }
+
+    public void restoreCompLeaveDays(BigDecimal restoreDays) {
+        this.usedCompLeaveDays = getUsedCompLeaveDays().subtract(restoreDays);
     }
 }
