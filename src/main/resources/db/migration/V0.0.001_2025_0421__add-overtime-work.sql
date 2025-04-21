@@ -10,20 +10,22 @@ create table documents_overtime_works
 
 create table overtime_works_times
 (
-    id               bigserial                   not null primary key,
-    document_id      bigint                      not null,
-    start_date       timestamp                   not null,
-    end_date         timestamp                   not null,
-    applied_hours    numeric(8, 4) default 0     not null,
-    user_unique_id   varchar(41)                 not null,
-    contents         varchar(250)                not null,
-    is_day_off       bool          default false not null,
-    is_extra_payment bool          default false not null,
+    id                          bigserial                   not null primary key,
+    document_id                 bigint                      not null,
+    start_date                  timestamp                   not null,
+    end_date                    timestamp                   not null,
+    applied_hours               numeric(8, 4) default 0     not null,
+    user_unique_id              varchar(41),
+    username                    varchar(50)                 not null,
+    contents                    varchar(250)                not null,
+    is_day_off                  bool          default false not null,
+    is_extra_payment            bool          default false not null,
+    applied_extra_payment_hours numeric(8, 4) default 0     not null,
 
     foreign key (document_id) references documents_overtime_works (id)
 );
 
-create table overtime_works_times_applied_hour_reports
+create table overtime_works_times_reports
 (
     id      bigserial not null primary key,
     time_id bigint    not null,
