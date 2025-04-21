@@ -7,6 +7,7 @@ import lombok.ToString;
 @Getter
 public enum DocumentStatus {
 
+    DRAFT("초안"),
     WAITING("대기"),
     PROCEEDING("진행"),
     APPROVED("승인"),
