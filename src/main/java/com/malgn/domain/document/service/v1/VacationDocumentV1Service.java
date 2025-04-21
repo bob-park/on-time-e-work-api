@@ -24,7 +24,6 @@ import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.NotSupportException;
 import com.malgn.common.model.Id;
 import com.malgn.domain.document.entity.VacationDocument;
-import com.malgn.domain.document.entity.type.DocumentType;
 import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.model.CreateVacationDocumentRequest;
 import com.malgn.domain.document.model.SearchVacationDocumentRequest;
@@ -33,11 +32,8 @@ import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
 import com.malgn.domain.document.model.v1.UsedCompLeaveEntryV1Request;
 import com.malgn.domain.document.model.v1.VacationDocumentV1Response;
 import com.malgn.domain.document.provider.RequestDocumentProvider;
-import com.malgn.domain.document.provider.v1.DocumentV1Request;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.document.service.VacationDocumentService;
-import com.malgn.domain.team.feign.TeamFeignClient;
-import com.malgn.domain.team.model.TeamResponse;
 import com.malgn.domain.user.entity.UserCompLeaveEntry;
 import com.malgn.domain.user.entity.UserLeaveEntry;
 import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
@@ -59,8 +55,6 @@ public class VacationDocumentV1Service implements VacationDocumentService {
     private static final List<Integer> DEFAULT_FAMILY_DAYS_WEEKS = List.of(1, 3);
 
     private final UserFeignClient userClient;
-
-    private final RequestDocumentProvider requestDocumentProvider;
 
     private final VacationDocumentRepository documentRepository;
     private final WorkScheduleRepository workScheduleRepository;
@@ -159,13 +153,6 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
             checkArgument(tempUsedDays.compareTo(BigDecimal.ZERO) <= 0, "invalid compensatory leave count..");
         }
-
-        requestDocumentProvider.request(
-            DocumentV1Request.builder()
-                .documentId(createdDocument.getId())
-                .teamId(user.team().id())
-                .documentType(DocumentType.VACATION)
-                .build());
 
         return from(createdDocument);
     }

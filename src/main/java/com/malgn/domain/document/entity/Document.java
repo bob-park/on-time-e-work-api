@@ -65,7 +65,7 @@ public abstract class Document extends BaseEntity<Long> {
 
         this.id = id;
         this.type = type;
-        this.status = defaultIfNull(status, DocumentStatus.WAITING);
+        this.status = defaultIfNull(status, DocumentStatus.DRAFT);
         this.userUniqueId = userUniqueId;
     }
 
@@ -75,6 +75,10 @@ public abstract class Document extends BaseEntity<Long> {
     public void addApprovalHistory(DocumentApprovalHistory approvalHistory) {
         approvalHistory.updateDocument(this);
         getApprovalHistories().add(approvalHistory);
+    }
+
+    public void request() {
+        this.status = DocumentStatus.WAITING;
     }
 
     public void approve() {

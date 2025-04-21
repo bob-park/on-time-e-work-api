@@ -12,6 +12,8 @@ public interface DocumentService {
 
     Page<DocumentResponse> search(SearchDocumentRequest searchRequest, Pageable pageable);
 
+    DocumentResponse request(Id<Document, Long> id);
+
     DocumentResponse cancel(Id<Document, Long> id);
 
 }

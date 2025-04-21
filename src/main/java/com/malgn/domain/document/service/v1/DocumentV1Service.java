@@ -1,5 +1,7 @@
 package com.malgn.domain.document.service.v1;
 
+import static com.malgn.domain.document.model.v1.DocumentV1Response.*;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,8 +17,12 @@ import com.malgn.domain.document.model.DocumentResponse;
 import com.malgn.domain.document.model.SearchDocumentRequest;
 import com.malgn.domain.document.model.v1.DocumentV1Response;
 import com.malgn.domain.document.provider.DelegatingCancelDocumentProvider;
+import com.malgn.domain.document.provider.RequestDocumentProvider;
+import com.malgn.domain.document.provider.v1.DocumentV1Request;
 import com.malgn.domain.document.repository.DocumentRepository;
 import com.malgn.domain.document.service.DocumentService;
+import com.malgn.domain.user.feign.UserFeignClient;
+import com.malgn.domain.user.model.UserResponse;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,7 +32,10 @@ public class DocumentV1Service implements DocumentService {
 
     private final DocumentRepository documentRepository;
 
+    private final RequestDocumentProvider requestProvider;
     private final DelegatingCancelDocumentProvider cancelProvider;
+
+    private final UserFeignClient userClient;
 
     @Override
     public Page<DocumentResponse> search(SearchDocumentRequest searchRequest, Pageable pageable) {
@@ -34,6 +43,26 @@ public class DocumentV1Service implements DocumentService {
         Page<Document> result = documentRepository.search(searchRequest, pageable);
 
         return result.map(DocumentV1Response::from);
+    }
+
+    @Transactional
+    @Override
+    public DocumentResponse request(Id<Document, Long> id) {
+
+        Document document =
+            documentRepository.findById(id.getValue())
+                .orElseThrow(() -> new NotFoundException(id));
+
+        UserResponse user = userClient.getById(document.getUserUniqueId());
+
+        requestProvider.request(
+            DocumentV1Request.builder()
+                .documentId(id.getValue())
+                .documentType(document.getType())
+                .teamId(user.team().id())
+                .build());
+
+        return from(document);
     }
 
     @Transactional

@@ -44,6 +44,8 @@ public class RequestDocumentV1Provider implements RequestDocumentProvider {
             documentRepository.findById(requestV1.documentId())
                 .orElseThrow(() -> new NotFoundException(Document.class, requestV1.documentId()));
 
+        document.request();
+
         ApprovalLine line =
             approvalLineRepository.getFirstLine(requestV1.teamId(), requestV1.documentType())
                 .orElseThrow(() -> new NotFoundException(ApprovalLine.class, requestV1.teamId()));

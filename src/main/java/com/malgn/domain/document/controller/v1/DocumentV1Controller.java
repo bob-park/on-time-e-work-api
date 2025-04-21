@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +32,11 @@ public class DocumentV1Controller {
     public Page<DocumentResponse> search(SearchDocumentV1Request searchRequest,
         @PageableDefault(size = 25, sort = "createdDate", direction = Direction.DESC) Pageable pageable) {
         return documentService.search(searchRequest, pageable);
+    }
+
+    @PostMapping(path = "{id:\\d+}/request")
+    public DocumentResponse request(@PathVariable long id) {
+        return documentService.request(Id.of(Document.class, id));
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
