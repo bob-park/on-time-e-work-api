@@ -1,6 +1,5 @@
 package com.malgn.domain.document.processor.v1;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.temporal.ChronoField;
@@ -61,124 +60,90 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
     }
 
     @Override
-    public DocumentApprovalHistory approve(Id<DocumentApprovalHistory, Long> id) {
+    public void approve(Id<DocumentApprovalHistory, Long> id) {
         DocumentApprovalHistory history =
             approvalHistoryRepository.getHistory(id)
                 .orElseThrow(() -> new NotFoundException(id));
 
         Document document = history.getDocument();
 
-        ApprovalLine nextLine = history.getApprovalLine().getNext();
+        Id<VacationDocument, Long> documentId = Id.of(VacationDocument.class, document.getId());
 
-        if (nextLine != null) {
+        VacationDocument vacationDocument =
+            documentRepository.getDocumentById(documentId)
+                .orElseThrow(() -> new NotFoundException(documentId));
 
-            // 다음 결재라인 이 있는 경우 생성
-            DocumentApprovalHistory createdHistory =
-                DocumentApprovalHistory.builder()
-                    .build();
+        VacationType vacationType = vacationDocument.getVacationType();
 
-            document.addApprovalHistory(createdHistory);
-            nextLine.addApprovalHistory(createdHistory);
+        UserLeaveEntry leaveEntry =
+            userLeaveEntryRepository.getLeaveEntry(
+                    vacationDocument.getUserUniqueId(),
+                    vacationDocument.getStartDate().getYear())
+                .orElseThrow(() -> new NotFoundException("No exist leave entry..."));
 
-            createdHistory = approvalHistoryRepository.save(createdHistory);
+        try {
+            switch (vacationType) {
+                case GENERAL -> leaveEntry.useLeaveDays(vacationDocument.getUsedDays());
+                case COMPENSATORY -> {
+                    leaveEntry.useCompLeaveDays(vacationDocument.getUsedDays());
 
-            log.debug("created next approval history. ({})", createdHistory);
-
-            try {
-                notificationSender.send(
-                    nextLine.getUserUniqueId(),
-                    Id.of(Document.class, document.getId()),
-                    document.getType());
-            } catch (Exception e) {
-                log.error("Failed send message - {}", e.getMessage(), e);
-            }
-
-        } else {
-
-            Id<VacationDocument, Long> documentId = Id.of(VacationDocument.class, document.getId());
-
-            VacationDocument vacationDocument =
-                documentRepository.getDocumentById(documentId)
-                    .orElseThrow(() -> new NotFoundException(documentId));
-
-            VacationType vacationType = vacationDocument.getVacationType();
-
-            UserLeaveEntry leaveEntry =
-                userLeaveEntryRepository.getLeaveEntry(
-                        vacationDocument.getUserUniqueId(),
-                        vacationDocument.getStartDate().getYear())
-                    .orElseThrow(() -> new NotFoundException("No exist leave entry..."));
-
-            try {
-                switch (vacationType) {
-                    case GENERAL -> leaveEntry.useLeaveDays(vacationDocument.getUsedDays());
-                    case COMPENSATORY -> {
-                        leaveEntry.useCompLeaveDays(vacationDocument.getUsedDays());
-
-                        for (UserVacationUsedCompLeave usedCompLeave : vacationDocument.getUsedCompLeaves()) {
-                            usedCompLeave.getCompLeaveEntry().addUsedDays(usedCompLeave.getUsedDays());
-                        }
+                    for (UserVacationUsedCompLeave usedCompLeave : vacationDocument.getUsedCompLeaves()) {
+                        usedCompLeave.getCompLeaveEntry().addUsedDays(usedCompLeave.getUsedDays());
                     }
-                    case OFFICIAL -> {
-                        // ignore
-                    }
-
-                    default -> throw new NotSupportException();
                 }
-            } catch (OverLeaveEntryException e) {
-                document.reject();
-                history.reject("사용할 수 있는 휴가일수를 넘겼습니다.");
-                throw new ServiceRuntimeException(e);
-            } catch (Exception e) {
-                document.reject();
-                history.reject("시스템에 문제가 있습니다. 관리자에게 문의해주세요.");
-                throw new ServiceRuntimeException(e);
+                case OFFICIAL -> {
+                    // ignore
+                }
+
+                default -> throw new NotSupportException();
             }
-
-            try {
-                addAttendanceSchedule(vacationDocument);
-            } catch (Exception e) {
-                log.error("failed add attendance schedule. - {}", e.getMessage(), e);
-            }
-
-            // 최종 승인자인 경우 최종 승인 처리
-            document.approve();
-
-            // 최종 승인인 경우 휴가 감소 처리
-            log.debug("final approval document... ({})", document);
-
-            // google calendar 추가
-            UserResponse user = userClient.getById(vacationDocument.getUserUniqueId());
-            StringBuilder calendarEventNameBuilder = new StringBuilder();
-
-            calendarEventNameBuilder
-                .append(user.username())
-                .append(" ")
-                .append(user.position().name())
-                .append(" ")
-                .append(parseType(vacationDocument.getVacationType(), vacationDocument.getVacationSubType()));
-
-            try {
-                calendarProvider.addEvent(
-                    calendarEventNameBuilder.toString(),
-                    vacationDocument.getStartDate(),
-                    vacationDocument.getEndDate());
-            } catch (ServiceRuntimeException e) {
-                log.warn("Failed to added calender event... - {}", e.getMessage(), e);
-            }
-
-            sendResultNotification(document);
+        } catch (OverLeaveEntryException e) {
+            document.reject();
+            history.reject("사용할 수 있는 휴가일수를 넘겼습니다.");
+            throw new ServiceRuntimeException(e);
+        } catch (Exception e) {
+            document.reject();
+            history.reject("시스템에 문제가 있습니다. 관리자에게 문의해주세요.");
+            throw new ServiceRuntimeException(e);
         }
 
-        history.approve();
+        try {
+            addAttendanceSchedule(vacationDocument);
+        } catch (Exception e) {
+            log.error("failed add attendance schedule. - {}", e.getMessage(), e);
+        }
 
-        log.debug("approved history. ({})", history);
+        // 최종 승인자인 경우 최종 승인 처리
+        document.approve();
 
-        return history;
+        // 최종 승인인 경우 휴가 감소 처리
+        log.debug("final approval document... ({})", document);
+
+        // google calendar 추가
+        UserResponse user = userClient.getById(vacationDocument.getUserUniqueId());
+        StringBuilder calendarEventNameBuilder = new StringBuilder();
+
+        calendarEventNameBuilder
+            .append(user.username())
+            .append(" ")
+            .append(user.position().name())
+            .append(" ")
+            .append(parseType(vacationDocument.getVacationType(), vacationDocument.getVacationSubType()));
+
+        try {
+            calendarProvider.addEvent(
+                calendarEventNameBuilder.toString(),
+                vacationDocument.getStartDate(),
+                vacationDocument.getEndDate());
+        } catch (ServiceRuntimeException e) {
+            log.warn("Failed to added calender event... - {}", e.getMessage(), e);
+        }
+
+        sendResultNotification(document);
     }
 
     @Override
-    public DocumentApprovalHistory reject(Id<DocumentApprovalHistory, Long> id, String reason) {
+    public void reject(Id<DocumentApprovalHistory, Long> id, String reason) {
         DocumentApprovalHistory history =
             approvalHistoryRepository.getHistory(id)
                 .orElseThrow(() -> new NotFoundException(id));
@@ -191,8 +156,6 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
         log.debug("rejected history. ({})", history);
 
         sendResultNotification(document);
-
-        return history;
     }
 
     private void sendResultNotification(Document document) {

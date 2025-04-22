@@ -57,7 +57,8 @@ public class AppConfiguration {
 
     @Bean
     public DelegatingApprovalProcessor delegatingApprovalProcessor() {
-        DelegatingApprovalProcessor processor = new DelegatingApprovalProcessor();
+        DelegatingApprovalProcessor processor =
+            new DelegatingApprovalProcessor(historyRepository, delegatingNotificationSender());
 
         processor.add(
             new VacationApprovalV1Processor(

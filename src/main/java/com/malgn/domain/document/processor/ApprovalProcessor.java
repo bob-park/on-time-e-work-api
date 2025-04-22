@@ -10,7 +10,8 @@ public interface ApprovalProcessor {
         return false;
     }
 
-    DocumentApprovalHistory approve(Id<DocumentApprovalHistory, Long> id);
+    void approve(Id<DocumentApprovalHistory, Long> id);
 
-    DocumentApprovalHistory reject(Id<DocumentApprovalHistory, Long> id, String reason);
+    void reject(Id<DocumentApprovalHistory, Long> id, String reason);
+
 }
