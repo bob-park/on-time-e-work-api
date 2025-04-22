@@ -12,7 +12,6 @@ import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.NotSupportException;
 import com.malgn.common.exception.ServiceRuntimeException;
 import com.malgn.common.model.Id;
-import com.malgn.domain.approval.entity.ApprovalLine;
 import com.malgn.domain.attendance.feign.AttendanceScheduleFeignClient;
 import com.malgn.domain.attendance.model.AddAttendanceScheduleRequest;
 import com.malgn.domain.document.entity.Document;
@@ -25,7 +24,6 @@ import com.malgn.domain.document.processor.ApprovalProcessor;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.google.provider.GoogleCalendarProvider;
-import com.malgn.domain.notification.sender.DelegatingNotificationSender;
 import com.malgn.domain.user.entity.UserLeaveEntry;
 import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
 import com.malgn.domain.user.exception.OverLeaveEntryException;
@@ -49,8 +47,6 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
 
     private final NotificationClient notiClient;
     private final UserFeignClient userClient;
-
-    private final DelegatingNotificationSender notificationSender;
 
     private final GoogleCalendarProvider calendarProvider;
 

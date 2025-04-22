@@ -10,7 +10,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import com.malgn.configure.proerties.AppProperties;
 import com.malgn.domain.approval.repository.ApprovalLineRepository;
 import com.malgn.domain.attendance.feign.AttendanceScheduleFeignClient;
+import com.malgn.domain.document.processor.ApprovalProcessor;
 import com.malgn.domain.document.processor.DelegatingApprovalProcessor;
+import com.malgn.domain.document.processor.v1.OvertimeWorkApprovalV1Processor;
 import com.malgn.domain.document.processor.v1.VacationApprovalV1Processor;
 import com.malgn.domain.document.provider.DelegatingCancelDocumentProvider;
 import com.malgn.domain.document.provider.RequestDocumentProvider;
@@ -18,6 +20,7 @@ import com.malgn.domain.document.provider.v1.CancelVacationV1Provider;
 import com.malgn.domain.document.provider.v1.RequestDocumentV1Provider;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.DocumentRepository;
+import com.malgn.domain.document.repository.OvertimeWorkDocumentRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.google.provider.GoogleCalendarProvider;
 import com.malgn.domain.notification.sender.DelegatingNotificationSender;
@@ -46,6 +49,9 @@ public class AppConfiguration {
     private final UserCompLeaveEntryRepository compLeaveEntryRepository;
     private final AttendanceScheduleFeignClient attendanceScheduleClient;
 
+    /*
+     * request document provider
+     */
     @Bean
     public RequestDocumentProvider requestDocumentProvider() {
         return new RequestDocumentV1Provider(
@@ -55,25 +61,46 @@ public class AppConfiguration {
             delegatingNotificationSender());
     }
 
+    /*
+     * approval processors
+     */
     @Bean
     public DelegatingApprovalProcessor delegatingApprovalProcessor() {
         DelegatingApprovalProcessor processor =
             new DelegatingApprovalProcessor(historyRepository, delegatingNotificationSender());
 
-        processor.add(
-            new VacationApprovalV1Processor(
-                attendanceScheduleClient,
-                historyRepository,
-                vacationDocumentRepository,
-                leaveEntryRepository,
-                notificationClient,
-                userFeignClient,
-                delegatingNotificationSender(),
-                googleCalendarProvider()));
+        processor.add(vacationApprovalProcessor());
+        processor.add(overtimeWorkApprovalProcessor(null));
 
         return processor;
     }
 
+    @Bean
+    public ApprovalProcessor vacationApprovalProcessor() {
+        return new VacationApprovalV1Processor(
+            attendanceScheduleClient,
+            historyRepository,
+            vacationDocumentRepository,
+            leaveEntryRepository,
+            notificationClient,
+            userFeignClient,
+            googleCalendarProvider());
+    }
+
+    @Bean
+    public ApprovalProcessor overtimeWorkApprovalProcessor(OvertimeWorkDocumentRepository documentRepository) {
+        return new OvertimeWorkApprovalV1Processor(
+            historyRepository,
+            documentRepository,
+            leaveEntryRepository,
+            compLeaveEntryRepository,
+            userFeignClient,
+            notificationClient);
+    }
+
+    /*
+     * notification sender
+     */
     @Bean
     public DelegatingNotificationSender delegatingNotificationSender() {
         DelegatingNotificationSender sender = new DelegatingNotificationSender();
@@ -87,11 +114,17 @@ public class AppConfiguration {
         return sender;
     }
 
+    /*
+     * google calendar provider
+     */
     @Bean
     public GoogleCalendarProvider googleCalendarProvider() {
         return new GoogleCalendarProvider(properties.google());
     }
 
+    /*
+     * cancel document provider
+     */
     @Bean
     public DelegatingCancelDocumentProvider delegatingCancelDocumentProvider() {
         DelegatingCancelDocumentProvider provider = new DelegatingCancelDocumentProvider();

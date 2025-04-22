@@ -34,6 +34,8 @@ import org.apache.commons.lang3.StringUtils;
 @Table(name = "overtime_works_times")
 public class OvertimeWorkTime {
 
+    private static final int DEFAULT_COMPENSATORY_HOURS = 4;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -104,4 +106,22 @@ public class OvertimeWorkTime {
     public void updateAppliedExtraPaymentHours(BigDecimal hours) {
         this.appliedExtraPaymentHours = hours;
     }
+
+    public BigDecimal getCompensatoryDays() {
+        if (!isDayOff()) {
+            return BigDecimal.ZERO;
+        }
+
+        long temp = getAppliedHours().longValue() / DEFAULT_COMPENSATORY_HOURS;
+
+        return BigDecimal.valueOf(temp * 0.5);
+    }
+
+    /*
+     * custom getter
+     */
+    public boolean isDayOff() {
+        return Boolean.TRUE.equals(getIsDayOff());
+    }
+
 }
