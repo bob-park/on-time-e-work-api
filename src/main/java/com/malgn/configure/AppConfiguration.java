@@ -24,6 +24,7 @@ import com.malgn.domain.document.repository.OvertimeWorkDocumentRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.google.provider.GoogleCalendarProvider;
 import com.malgn.domain.notification.sender.DelegatingNotificationSender;
+import com.malgn.domain.notification.sender.OvertimeWorkDocumentNotificationSender;
 import com.malgn.domain.notification.sender.VacationDocumentNotificationSender;
 import com.malgn.domain.user.feign.UserFeignClient;
 import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
@@ -40,6 +41,7 @@ public class AppConfiguration {
 
     private final NotificationClient notificationClient;
     private final UserFeignClient userFeignClient;
+    private final AttendanceScheduleFeignClient attendanceScheduleClient;
 
     private final ApprovalLineRepository approvalLineRepository;
     private final DocumentRepository documentRepository;
@@ -47,7 +49,7 @@ public class AppConfiguration {
     private final VacationDocumentRepository vacationDocumentRepository;
     private final UserLeaveEntryRepository leaveEntryRepository;
     private final UserCompLeaveEntryRepository compLeaveEntryRepository;
-    private final AttendanceScheduleFeignClient attendanceScheduleClient;
+    private final OvertimeWorkDocumentRepository overTimeWorkDocumentRepository;
 
     /*
      * request document provider
@@ -70,7 +72,7 @@ public class AppConfiguration {
             new DelegatingApprovalProcessor(historyRepository, delegatingNotificationSender());
 
         processor.add(vacationApprovalProcessor());
-        processor.add(overtimeWorkApprovalProcessor(null));
+        processor.add(overtimeWorkApprovalProcessor());
 
         return processor;
     }
@@ -88,10 +90,10 @@ public class AppConfiguration {
     }
 
     @Bean
-    public ApprovalProcessor overtimeWorkApprovalProcessor(OvertimeWorkDocumentRepository documentRepository) {
+    public ApprovalProcessor overtimeWorkApprovalProcessor() {
         return new OvertimeWorkApprovalV1Processor(
             historyRepository,
-            documentRepository,
+            overTimeWorkDocumentRepository,
             leaveEntryRepository,
             compLeaveEntryRepository,
             userFeignClient,
@@ -110,6 +112,12 @@ public class AppConfiguration {
                 notificationClient,
                 userFeignClient,
                 vacationDocumentRepository));
+
+        sender.addSender(
+            new OvertimeWorkDocumentNotificationSender(
+                notificationClient,
+                userFeignClient,
+                overTimeWorkDocumentRepository));
 
         return sender;
     }
