@@ -96,4 +96,12 @@ public class OvertimeWorkTime {
 
         getReports().add(report);
     }
+
+    public void updateAppliedHours(BigDecimal hours) {
+        this.appliedHours = hours;
+    }
+
+    public void updateAppliedExtraPaymentHours(BigDecimal hours) {
+        this.appliedExtraPaymentHours = hours;
+    }
 }

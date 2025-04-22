@@ -2,9 +2,6 @@ package com.malgn.domain.document.entity;
 
 import static com.google.common.base.Preconditions.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -22,8 +19,6 @@ import lombok.ToString;
 import lombok.ToString.Exclude;
 
 import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.Preconditions;
 
 @ToString
 @Getter
