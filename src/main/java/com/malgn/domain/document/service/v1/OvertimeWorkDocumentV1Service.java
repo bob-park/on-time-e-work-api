@@ -18,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.malgn.common.exception.NotFoundException;
+import com.malgn.common.model.Id;
+import com.malgn.domain.document.entity.Document;
 import com.malgn.domain.document.entity.OvertimeWorkDocument;
 import com.malgn.domain.document.entity.OvertimeWorkTime;
 import com.malgn.domain.document.entity.OvertimeWorkTimeReport;
@@ -87,6 +90,16 @@ public class OvertimeWorkDocumentV1Service implements OvertimeWorkDocumentServic
         }
 
         return from(createdDocument);
+    }
+
+    @Override
+    public OvertimeWorkDocumentResponse getById(Id<OvertimeWorkDocument, Long> id) {
+
+        OvertimeWorkDocument document =
+            overtimeWorkRepository.findDocument(id)
+                .orElseThrow(() -> new NotFoundException(id));
+
+        return from(document);
     }
 
     private OvertimeWorkTime calculateWorkTime(OvertimeWorkDocument document,

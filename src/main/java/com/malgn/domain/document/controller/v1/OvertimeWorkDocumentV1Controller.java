@@ -3,12 +3,16 @@ package com.malgn.domain.document.controller.v1;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.malgn.common.model.Id;
+import com.malgn.domain.document.entity.OvertimeWorkDocument;
 import com.malgn.domain.document.model.OvertimeWorkDocumentResponse;
 import com.malgn.domain.document.model.v1.CreateOvertimeWorkDocumentV1Request;
 import com.malgn.domain.document.service.v1.OvertimeWorkDocumentV1Service;
@@ -24,6 +28,11 @@ public class OvertimeWorkDocumentV1Controller {
     @PostMapping(path = "")
     public OvertimeWorkDocumentResponse createDocument(@RequestBody CreateOvertimeWorkDocumentV1Request createRequest) {
         return documentService.create(createRequest);
+    }
+
+    @GetMapping(path = "{documentId:\\d+}")
+    public OvertimeWorkDocumentResponse getDocument(@PathVariable long documentId) {
+        return documentService.getById(Id.of(OvertimeWorkDocument.class, documentId));
     }
 
 }
