@@ -23,15 +23,17 @@ import org.apache.commons.lang3.StringUtils;
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.NotSupportException;
 import com.malgn.common.model.Id;
+import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.entity.type.VacationType;
+import com.malgn.domain.document.event.CreateDocumentEventPayload;
+import com.malgn.domain.document.event.DocumentEventType;
 import com.malgn.domain.document.model.CreateVacationDocumentRequest;
 import com.malgn.domain.document.model.SearchVacationDocumentRequest;
 import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
 import com.malgn.domain.document.model.v1.UsedCompLeaveEntryV1Request;
 import com.malgn.domain.document.model.v1.VacationDocumentV1Response;
-import com.malgn.domain.document.provider.RequestDocumentProvider;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.document.service.VacationDocumentService;
 import com.malgn.domain.user.entity.UserCompLeaveEntry;
@@ -62,6 +64,8 @@ public class VacationDocumentV1Service implements VacationDocumentService {
     private final UserCompLeaveEntryRepository userCompLeaveEntryRepository;
     private final UserVacationUsedCompLeaveRepository userVacationUsedCompLeaveRepository;
     private final VacationDocumentRepository vacationDocumentRepository;
+
+    private final OutboxEventPublisher publisher;
 
     @Transactional
     @Override
@@ -153,6 +157,15 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
             checkArgument(tempUsedDays.compareTo(BigDecimal.ZERO) <= 0, "invalid compensatory leave count..");
         }
+
+        // event
+        publisher.publish(
+            DocumentEventType.CREATE_DOCUMENT,
+            CreateDocumentEventPayload.builder()
+                .id(createdDocument.getId())
+                .type(createdDocument.getType())
+                .userUniqueId(createdDocument.getUserUniqueId())
+                .build());
 
         return from(createdDocument);
     }

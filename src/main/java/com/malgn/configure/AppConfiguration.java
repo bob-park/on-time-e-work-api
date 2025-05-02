@@ -8,8 +8,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.malgn.configure.proerties.AppProperties;
+import com.malgn.cqrs.event.EventPayload;
+import com.malgn.cqrs.event.handler.DelegatingCommandHandler;
 import com.malgn.domain.approval.repository.ApprovalLineRepository;
 import com.malgn.domain.attendance.feign.AttendanceScheduleFeignClient;
+import com.malgn.domain.document.command.handler.DocumentCommandHandler;
 import com.malgn.domain.document.processor.ApprovalProcessor;
 import com.malgn.domain.document.processor.DelegatingApprovalProcessor;
 import com.malgn.domain.document.processor.v1.OvertimeWorkApprovalV1Processor;
@@ -142,4 +145,12 @@ public class AppConfiguration {
         return provider;
     }
 
+    @Bean
+    public DelegatingCommandHandler delegatingCommandHandler() {
+        DelegatingCommandHandler handler = new DelegatingCommandHandler<>();
+
+        handler.add(new DocumentCommandHandler());
+
+        return handler;
+    }
 }
