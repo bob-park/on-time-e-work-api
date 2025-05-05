@@ -15,6 +15,7 @@ import com.malgn.domain.document.entity.DocumentApprovalHistory;
 import com.malgn.domain.document.entity.type.DocumentType;
 import com.malgn.domain.document.event.DocumentApprovedEventPayload;
 import com.malgn.domain.document.event.DocumentEventType;
+import com.malgn.domain.document.event.DocumentRejectedEventPayload;
 import com.malgn.domain.document.event.DocumentRequestedEventPayload;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 
@@ -112,8 +113,8 @@ public class DelegatingApprovalProcessor {
         }
 
         publisher.publish(
-            DocumentEventType.DOCUMENT_REQUESTED,
-            DocumentRequestedEventPayload.builder()
+            DocumentEventType.DOCUMENT_REJECTED,
+            DocumentRejectedEventPayload.builder()
                 .id(document.getId())
                 .type(documentType)
                 .userUniqueId(document.getUserUniqueId())
