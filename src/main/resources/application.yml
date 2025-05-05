@@ -91,7 +91,7 @@ malgn:
     enabled: on
     host: ${redis_host:redis://localhost:6379}
   notification:
-    enabled: on
+    enabled: off
     host: ${notification_host:http://localhost:8080}
 
 ## e-work

@@ -79,7 +79,7 @@ public class DelegatingApprovalProcessor {
 
             // event 처리
             publisher.publish(
-                DocumentEventType.DOCUMENT_REQUESTED,
+                DocumentEventType.DOCUMENT_APPROVED,
                 DocumentApprovedEventPayload.builder()
                     .id(document.getId())
                     .type(documentType)
@@ -98,11 +98,27 @@ public class DelegatingApprovalProcessor {
     public void reject(Id<DocumentApprovalHistory, Long> id, String reason,
         DocumentType documentType) {
 
+        // 공통 처리
+        DocumentApprovalHistory history =
+            approvalHistoryRepository.getHistory(id)
+                .orElseThrow(() -> new NotFoundException(id));
+
+        Document document = history.getDocument();
+
         for (ApprovalProcessor processor : processors) {
             if (processor.isSupport(documentType)) {
                 processor.reject(id, reason);
             }
         }
+
+        publisher.publish(
+            DocumentEventType.DOCUMENT_REQUESTED,
+            DocumentRequestedEventPayload.builder()
+                .id(document.getId())
+                .type(documentType)
+                .userUniqueId(document.getUserUniqueId())
+                .receiveUserUniqueId(document.getUserUniqueId())
+                .build());
 
     }
 
