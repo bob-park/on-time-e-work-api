@@ -6,8 +6,8 @@ import com.malgn.cqrs.event.EventPayload;
 import com.malgn.domain.document.entity.type.DocumentType;
 
 @Builder
-public record CreateDocumentEventPayload(Long id,
-                                         DocumentType type,
-                                         String userUniqueId)
+public record DocumentCreatedEventPayload(Long id,
+                                          DocumentType type,
+                                          String userUniqueId)
     implements EventPayload {
 }

@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import com.malgn.common.exception.NotFoundException;
-import com.malgn.common.exception.ServiceRuntimeException;
 import com.malgn.common.model.Id;
 import com.malgn.domain.document.entity.Document;
 import com.malgn.domain.document.entity.DocumentApprovalHistory;
@@ -23,11 +22,8 @@ import com.malgn.domain.document.repository.OvertimeWorkDocumentRepository;
 import com.malgn.domain.user.entity.UserCompLeaveEntry;
 import com.malgn.domain.user.entity.UserLeaveEntry;
 import com.malgn.domain.user.feign.UserFeignClient;
-import com.malgn.domain.user.model.UserResponse;
 import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
-import com.malgn.notification.client.NotificationClient;
-import com.malgn.notification.model.SendNotificationMessageRequest;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,7 +35,6 @@ public class OvertimeWorkApprovalV1Processor implements ApprovalProcessor {
     private final UserCompLeaveEntryRepository userCompLeaveEntryRepository;
 
     private final UserFeignClient userClient;
-    private final NotificationClient notiClient;
 
     @Override
     public void approve(Id<DocumentApprovalHistory, Long> id) {
@@ -96,8 +91,6 @@ public class OvertimeWorkApprovalV1Processor implements ApprovalProcessor {
 
         // 최종 승인자인 경우 최종 승인 처리
         document.approve();
-
-        sendResultNotification(document);
     }
 
     @Override
@@ -113,7 +106,6 @@ public class OvertimeWorkApprovalV1Processor implements ApprovalProcessor {
 
         log.debug("rejected history. ({})", history);
 
-        sendResultNotification(document);
     }
 
     @Override
@@ -121,38 +113,4 @@ public class OvertimeWorkApprovalV1Processor implements ApprovalProcessor {
         return documentType == DocumentType.OVERTIME_WORK;
     }
 
-    private void sendResultNotification(Document document) {
-        try {
-            SendNotificationMessageRequest message =
-                SendNotificationMessageRequest.builder()
-                    .displayMessage(parseDisplayMessage(document))
-                    .fields(List.of())
-                    .build();
-
-            notiClient.sendUserNotification(document.getUserUniqueId(), message);
-
-            log.debug("sent notification message...");
-        } catch (Exception e) {
-            throw new ServiceRuntimeException(e);
-        }
-    }
-
-    private String parseDisplayMessage(Document document) {
-
-        StringBuilder builder = new StringBuilder();
-        UserResponse user = userClient.getById(document.getUserUniqueId());
-
-        builder.append(user.team().name())
-            .append(" ")
-            .append(user.username())
-            .append(" ")
-            .append(user.position().name())
-            .append(" 이(가) 신청하신 ")
-            .append(document.getType().getDisplayName())
-            .append(" 문서가 ")
-            .append(document.getStatus().getDisplayName())
-            .append(" 되었습니다.");
-
-        return builder.toString();
-    }
 }

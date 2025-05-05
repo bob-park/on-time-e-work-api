@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.malgn.configure.proerties.AppProperties;
-import com.malgn.cqrs.event.EventPayload;
 import com.malgn.cqrs.event.handler.DelegatingCommandHandler;
+import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.approval.repository.ApprovalLineRepository;
 import com.malgn.domain.attendance.feign.AttendanceScheduleFeignClient;
 import com.malgn.domain.document.command.handler.DocumentCommandHandler;
@@ -26,13 +26,9 @@ import com.malgn.domain.document.repository.DocumentRepository;
 import com.malgn.domain.document.repository.OvertimeWorkDocumentRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.google.provider.GoogleCalendarProvider;
-import com.malgn.domain.notification.sender.DelegatingNotificationSender;
-import com.malgn.domain.notification.sender.OvertimeWorkDocumentNotificationSender;
-import com.malgn.domain.notification.sender.VacationDocumentNotificationSender;
 import com.malgn.domain.user.feign.UserFeignClient;
 import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
-import com.malgn.notification.client.NotificationClient;
 
 @RequiredArgsConstructor
 @EnableScheduling
@@ -42,7 +38,8 @@ public class AppConfiguration {
 
     private final AppProperties properties;
 
-    private final NotificationClient notificationClient;
+    private final OutboxEventPublisher publisher;
+
     private final UserFeignClient userFeignClient;
     private final AttendanceScheduleFeignClient attendanceScheduleClient;
 
@@ -63,7 +60,7 @@ public class AppConfiguration {
             approvalLineRepository,
             documentRepository,
             historyRepository,
-            delegatingNotificationSender());
+            publisher);
     }
 
     /*
@@ -72,7 +69,7 @@ public class AppConfiguration {
     @Bean
     public DelegatingApprovalProcessor delegatingApprovalProcessor() {
         DelegatingApprovalProcessor processor =
-            new DelegatingApprovalProcessor(historyRepository, delegatingNotificationSender());
+            new DelegatingApprovalProcessor(historyRepository, publisher);
 
         processor.add(vacationApprovalProcessor());
         processor.add(overtimeWorkApprovalProcessor());
@@ -87,7 +84,6 @@ public class AppConfiguration {
             historyRepository,
             vacationDocumentRepository,
             leaveEntryRepository,
-            notificationClient,
             userFeignClient,
             googleCalendarProvider());
     }
@@ -99,30 +95,7 @@ public class AppConfiguration {
             overTimeWorkDocumentRepository,
             leaveEntryRepository,
             compLeaveEntryRepository,
-            userFeignClient,
-            notificationClient);
-    }
-
-    /*
-     * notification sender
-     */
-    @Bean
-    public DelegatingNotificationSender delegatingNotificationSender() {
-        DelegatingNotificationSender sender = new DelegatingNotificationSender();
-
-        sender.addSender(
-            new VacationDocumentNotificationSender(
-                notificationClient,
-                userFeignClient,
-                vacationDocumentRepository));
-
-        sender.addSender(
-            new OvertimeWorkDocumentNotificationSender(
-                notificationClient,
-                userFeignClient,
-                overTimeWorkDocumentRepository));
-
-        return sender;
+            userFeignClient);
     }
 
     /*
@@ -145,12 +118,4 @@ public class AppConfiguration {
         return provider;
     }
 
-    @Bean
-    public DelegatingCommandHandler delegatingCommandHandler() {
-        DelegatingCommandHandler handler = new DelegatingCommandHandler<>();
-
-        handler.add(new DocumentCommandHandler());
-
-        return handler;
-    }
 }

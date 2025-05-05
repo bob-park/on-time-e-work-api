@@ -26,7 +26,7 @@ import com.malgn.common.model.Id;
 import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.entity.type.VacationType;
-import com.malgn.domain.document.event.CreateDocumentEventPayload;
+import com.malgn.domain.document.event.DocumentCreatedEventPayload;
 import com.malgn.domain.document.event.DocumentEventType;
 import com.malgn.domain.document.model.CreateVacationDocumentRequest;
 import com.malgn.domain.document.model.SearchVacationDocumentRequest;
@@ -160,8 +160,8 @@ public class VacationDocumentV1Service implements VacationDocumentService {
 
         // event
         publisher.publish(
-            DocumentEventType.CREATE_DOCUMENT,
-            CreateDocumentEventPayload.builder()
+            DocumentEventType.DOCUMENT_CREATED,
+            DocumentCreatedEventPayload.builder()
                 .id(createdDocument.getId())
                 .type(createdDocument.getType())
                 .userUniqueId(createdDocument.getUserUniqueId())

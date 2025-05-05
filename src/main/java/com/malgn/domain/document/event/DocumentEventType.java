@@ -14,13 +14,15 @@ import com.malgn.cqrs.event.EventType;
 @RequiredArgsConstructor
 public enum DocumentEventType implements EventType {
 
-    CREATE_DOCUMENT("on-time-e-work-document", CreateDocumentEventPayload.class);
+    DOCUMENT_CREATED("documents", "DOCUMENT_CREATED", DocumentCreatedEventPayload.class),
+    DOCUMENT_REQUESTED("documents", "DOCUMENT_REQUESTED", DocumentRequestedEventPayload.class),
+    DOCUMENT_APPROVED("documents", "DOCUMENT_APPROVED", DocumentApprovedEventPayload.class);
 
     private final String topic;
+    private final String type;
     private final Class<? extends EventPayload> payloadClass;
 
-
     public static class Topic {
-        public static final String DOCUMENT = "on-time-e-work-document";
+        public static final String DOCUMENT = "documents";
     }
 }

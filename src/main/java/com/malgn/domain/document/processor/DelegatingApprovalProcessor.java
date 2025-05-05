@@ -8,12 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.model.Id;
+import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.approval.entity.ApprovalLine;
 import com.malgn.domain.document.entity.Document;
 import com.malgn.domain.document.entity.DocumentApprovalHistory;
 import com.malgn.domain.document.entity.type.DocumentType;
+import com.malgn.domain.document.event.DocumentApprovedEventPayload;
+import com.malgn.domain.document.event.DocumentEventType;
+import com.malgn.domain.document.event.DocumentRequestedEventPayload;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
-import com.malgn.domain.notification.sender.DelegatingNotificationSender;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,7 +25,8 @@ public class DelegatingApprovalProcessor {
     private final List<ApprovalProcessor> processors = new ArrayList<>();
 
     private final DocumentApprovalHistoryRepository approvalHistoryRepository;
-    private final DelegatingNotificationSender notificationSender;
+
+    private final OutboxEventPublisher publisher;
 
     public void add(ApprovalProcessor processor) {
         processors.add(processor);
@@ -55,14 +59,15 @@ public class DelegatingApprovalProcessor {
 
             log.debug("created next approval history. ({})", createdHistory);
 
-            try {
-                notificationSender.send(
-                    nextLine.getUserUniqueId(),
-                    Id.of(Document.class, document.getId()),
-                    document.getType());
-            } catch (Exception e) {
-                log.error("Failed send message - {}", e.getMessage(), e);
-            }
+            // event 처리
+            publisher.publish(
+                DocumentEventType.DOCUMENT_REQUESTED,
+                DocumentRequestedEventPayload.builder()
+                    .id(document.getId())
+                    .type(documentType)
+                    .userUniqueId(document.getUserUniqueId())
+                    .receiveUserUniqueId(nextLine.getUserUniqueId())
+                    .build());
 
         } else {
             // 마지막 승인인 경우 처리
@@ -71,6 +76,16 @@ public class DelegatingApprovalProcessor {
                     processor.approve(id);
                 }
             }
+
+            // event 처리
+            publisher.publish(
+                DocumentEventType.DOCUMENT_REQUESTED,
+                DocumentApprovedEventPayload.builder()
+                    .id(document.getId())
+                    .type(documentType)
+                    .userUniqueId(document.getUserUniqueId())
+                    .receiveUserUniqueId(document.getUserUniqueId())
+                    .build());
         }
 
         history.approve();

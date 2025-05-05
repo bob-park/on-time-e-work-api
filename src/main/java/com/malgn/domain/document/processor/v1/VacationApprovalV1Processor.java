@@ -30,8 +30,6 @@ import com.malgn.domain.user.exception.OverLeaveEntryException;
 import com.malgn.domain.user.feign.UserFeignClient;
 import com.malgn.domain.user.model.UserResponse;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
-import com.malgn.notification.client.NotificationClient;
-import com.malgn.notification.model.SendNotificationMessageRequest;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,7 +43,6 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
     private final VacationDocumentRepository documentRepository;
     private final UserLeaveEntryRepository userLeaveEntryRepository;
 
-    private final NotificationClient notiClient;
     private final UserFeignClient userClient;
 
     private final GoogleCalendarProvider calendarProvider;
@@ -135,7 +132,6 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
             log.warn("Failed to added calender event... - {}", e.getMessage(), e);
         }
 
-        sendResultNotification(document);
     }
 
     @Override
@@ -151,23 +147,6 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
 
         log.debug("rejected history. ({})", history);
 
-        sendResultNotification(document);
-    }
-
-    private void sendResultNotification(Document document) {
-        try {
-            SendNotificationMessageRequest message =
-                SendNotificationMessageRequest.builder()
-                    .displayMessage(parseDisplayMessage(document))
-                    .fields(List.of())
-                    .build();
-
-            notiClient.sendUserNotification(document.getUserUniqueId(), message);
-
-            log.debug("sent notification message...");
-        } catch (Exception e) {
-            throw new ServiceRuntimeException(e);
-        }
     }
 
     private void addAttendanceSchedule(VacationDocument vacation) {
@@ -260,22 +239,4 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
         return result;
     }
 
-    private String parseDisplayMessage(Document document) {
-
-        StringBuilder builder = new StringBuilder();
-        UserResponse user = userClient.getById(document.getUserUniqueId());
-
-        builder.append(user.team().name())
-            .append(" ")
-            .append(user.username())
-            .append(" ")
-            .append(user.position().name())
-            .append(" 이(가) 신청하신 ")
-            .append(document.getType().getDisplayName())
-            .append(" 문서가 ")
-            .append(document.getStatus().getDisplayName())
-            .append(" 되었습니다.");
-
-        return builder.toString();
-    }
 }

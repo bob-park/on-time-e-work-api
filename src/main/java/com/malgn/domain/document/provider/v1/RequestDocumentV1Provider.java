@@ -9,16 +9,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.malgn.common.exception.NotFoundException;
-import com.malgn.common.model.Id;
+import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.approval.entity.ApprovalLine;
 import com.malgn.domain.approval.repository.ApprovalLineRepository;
 import com.malgn.domain.document.entity.Document;
 import com.malgn.domain.document.entity.DocumentApprovalHistory;
+import com.malgn.domain.document.event.DocumentEventType;
+import com.malgn.domain.document.event.DocumentRequestedEventPayload;
 import com.malgn.domain.document.provider.DocumentRequest;
 import com.malgn.domain.document.provider.RequestDocumentProvider;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.DocumentRepository;
-import com.malgn.domain.notification.sender.DelegatingNotificationSender;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,7 +29,7 @@ public class RequestDocumentV1Provider implements RequestDocumentProvider {
     private final DocumentRepository documentRepository;
     private final DocumentApprovalHistoryRepository historyRepository;
 
-    private final DelegatingNotificationSender notificationSender;
+    private final OutboxEventPublisher publisher;
 
     @Transactional
     @Override
@@ -59,14 +60,13 @@ public class RequestDocumentV1Provider implements RequestDocumentProvider {
 
         log.debug("created document approval history. ({})", createdHistory);
 
-        try {
-            notificationSender.send(
-                line.getUserUniqueId(),
-                Id.of(Document.class, document.getId()),
-                document.getType());
-        } catch (Exception e) {
-            log.error("Failed send message - {}", e.getMessage(), e);
-        }
-
+        publisher.publish(
+            DocumentEventType.DOCUMENT_REQUESTED,
+            DocumentRequestedEventPayload.builder()
+                .id(document.getId())
+                .type(document.getType())
+                .userUniqueId(document.getUserUniqueId())
+                .receiveUserUniqueId(line.getUserUniqueId())
+                .build());
     }
 }
