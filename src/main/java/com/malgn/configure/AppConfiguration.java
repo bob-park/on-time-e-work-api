@@ -23,7 +23,6 @@ import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.DocumentRepository;
 import com.malgn.domain.document.repository.OvertimeWorkDocumentRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
-import com.malgn.domain.google.provider.GoogleCalendarProvider;
 import com.malgn.domain.user.feign.UserFeignClient;
 import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
@@ -82,8 +81,7 @@ public class AppConfiguration {
             historyRepository,
             vacationDocumentRepository,
             leaveEntryRepository,
-            userFeignClient,
-            googleCalendarProvider());
+            userFeignClient);
     }
 
     @Bean
@@ -94,14 +92,6 @@ public class AppConfiguration {
             leaveEntryRepository,
             compLeaveEntryRepository,
             userFeignClient);
-    }
-
-    /*
-     * google calendar provider
-     */
-    @Bean
-    public GoogleCalendarProvider googleCalendarProvider() {
-        return new GoogleCalendarProvider(properties.google());
     }
 
     /*

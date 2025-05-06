@@ -23,7 +23,6 @@ import com.malgn.domain.document.entity.type.VacationType;
 import com.malgn.domain.document.processor.ApprovalProcessor;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
-import com.malgn.domain.google.provider.GoogleCalendarProvider;
 import com.malgn.domain.user.entity.UserLeaveEntry;
 import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
 import com.malgn.domain.user.exception.OverLeaveEntryException;
@@ -44,8 +43,6 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
     private final UserLeaveEntryRepository userLeaveEntryRepository;
 
     private final UserFeignClient userClient;
-
-    private final GoogleCalendarProvider calendarProvider;
 
     @Override
     public boolean isSupport(DocumentType documentType) {
@@ -122,15 +119,6 @@ public class VacationApprovalV1Processor implements ApprovalProcessor {
             .append(user.position().name())
             .append(" ")
             .append(parseType(vacationDocument.getVacationType(), vacationDocument.getVacationSubType()));
-
-        try {
-            calendarProvider.addEvent(
-                calendarEventNameBuilder.toString(),
-                vacationDocument.getStartDate(),
-                vacationDocument.getEndDate());
-        } catch (ServiceRuntimeException e) {
-            log.warn("Failed to added calender event... - {}", e.getMessage(), e);
-        }
 
     }
 

@@ -13,7 +13,7 @@ java {
 }
 
 ext {
-    malgnStarterVersion = "1.1.2-RC1-2025.05.06"
+    malgnStarterVersion = "1.1.2-RC2-2025.05.07"
 
     springCloudVersion = '2024.0.0'
     springCloudNetflixVersion = '4.2.0'
@@ -78,10 +78,6 @@ dependencies {
     annotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jakarta")
     testAnnotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jakarta")
 
-    // google
-    implementation 'com.google.api-client:google-api-client:2.0.0'
-    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.34.1'
-    implementation 'com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0'
 }
 
 dependencyManagement {
