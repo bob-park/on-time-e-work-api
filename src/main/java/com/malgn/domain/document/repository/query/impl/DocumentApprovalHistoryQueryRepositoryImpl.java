@@ -85,7 +85,8 @@ public class DocumentApprovalHistoryQueryRepositoryImpl implements DocumentAppro
             builder.and(eqUserUniqueId(searchV1Request.userUniqueId()))
                 .and(eqStatus(searchV1Request.status()))
                 .and(goeCreatedDateFrom(searchV1Request.createdDateFrom()))
-                .and(loeCreatedDateTo(searchV1Request.createdDateTo()));
+                .and(loeCreatedDateTo(searchV1Request.createdDateTo()))
+                .and(document.status.notIn(DocumentStatus.CANCELLED));
         }
 
         return builder;
