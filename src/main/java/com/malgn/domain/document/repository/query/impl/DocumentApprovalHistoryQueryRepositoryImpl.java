@@ -60,9 +60,7 @@ public class DocumentApprovalHistoryQueryRepositoryImpl implements DocumentAppro
         List<DocumentApprovalHistory> content =
             query.selectFrom(documentApprovalHistory)
                 .join(documentApprovalHistory.document, document).fetchJoin()
-                .where(
-                    document.status.notIn(DocumentStatus.CANCELLED),
-                    mappingCondition(searchRequest))
+                .where(mappingCondition(searchRequest))
                 .orderBy(sort(pageable))
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
