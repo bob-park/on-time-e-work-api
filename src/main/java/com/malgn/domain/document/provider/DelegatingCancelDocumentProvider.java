@@ -3,6 +3,7 @@ package com.malgn.domain.document.provider;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import com.malgn.common.model.Id;
@@ -10,6 +11,7 @@ import com.malgn.domain.document.entity.Document;
 import com.malgn.domain.document.entity.type.DocumentType;
 
 @Slf4j
+@RequiredArgsConstructor
 public class DelegatingCancelDocumentProvider {
 
     private final List<CancelDocumentProvider> providers = new ArrayList<>();

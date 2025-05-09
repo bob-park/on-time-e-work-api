@@ -8,10 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.model.Id;
+import com.malgn.cqrs.outbox.publish.OutboxEventPublisher;
 import com.malgn.domain.document.entity.Document;
 import com.malgn.domain.document.entity.VacationDocument;
 import com.malgn.domain.document.entity.type.DocumentStatus;
 import com.malgn.domain.document.entity.type.DocumentType;
+import com.malgn.domain.document.event.DocumentCanceledEventPayload;
+import com.malgn.domain.document.event.DocumentEventType;
 import com.malgn.domain.document.provider.CancelDocumentProvider;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
 import com.malgn.domain.user.entity.UserLeaveEntry;
@@ -24,6 +27,8 @@ public class CancelVacationV1Provider implements CancelDocumentProvider {
 
     private final VacationDocumentRepository documentRepository;
     private final UserLeaveEntryRepository userLeaveEntryRepository;
+
+    private final OutboxEventPublisher publisher;
 
     @Override
     public void cancel(Id<Document, Long> documentId) {
@@ -77,6 +82,14 @@ public class CancelVacationV1Provider implements CancelDocumentProvider {
         document.cancel();
 
         log.debug("canceled vacation document. (id={})", document.getId());
+
+        publisher.publish(
+            DocumentEventType.DOCUMENT_CANCELED,
+            DocumentCanceledEventPayload.builder()
+                .id(document.getId())
+                .type(document.getType())
+                .userUniqueId(document.getUserUniqueId())
+                .build());
 
     }
 

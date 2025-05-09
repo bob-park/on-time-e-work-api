@@ -101,7 +101,7 @@ public class AppConfiguration {
     public DelegatingCancelDocumentProvider delegatingCancelDocumentProvider() {
         DelegatingCancelDocumentProvider provider = new DelegatingCancelDocumentProvider();
 
-        provider.add(new CancelVacationV1Provider(vacationDocumentRepository, leaveEntryRepository));
+        provider.add(new CancelVacationV1Provider(vacationDocumentRepository, leaveEntryRepository, publisher));
 
         return provider;
     }
