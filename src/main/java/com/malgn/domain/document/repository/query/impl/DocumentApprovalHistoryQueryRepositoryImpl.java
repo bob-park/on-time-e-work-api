@@ -3,7 +3,6 @@ package com.malgn.domain.document.repository.query.impl;
 import static com.malgn.domain.approval.entity.QApprovalLine.*;
 import static com.malgn.domain.document.entity.QDocument.*;
 import static com.malgn.domain.document.entity.QDocumentApprovalHistory.*;
-import static com.malgn.domain.document.entity.QVacationDocument.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -28,13 +27,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.malgn.common.model.Id;
 import com.malgn.common.querydsl.model.QueryDslPath;
 import com.malgn.common.querydsl.utils.QueryRepositoryUtils;
-import com.malgn.domain.approval.entity.QApprovalLine;
 import com.malgn.domain.document.entity.DocumentApprovalHistory;
-import com.malgn.domain.document.entity.QDocument;
-import com.malgn.domain.document.entity.QDocumentApprovalHistory;
 import com.malgn.domain.document.entity.type.ApprovalStatus;
 import com.malgn.domain.document.entity.type.DocumentStatus;
-import com.malgn.domain.document.model.RejectDocumentRequest;
 import com.malgn.domain.document.model.SearchDocumentApprovalHistoryRequest;
 import com.malgn.domain.document.model.v1.SearchDocumentApprovalHistoryV1Request;
 import com.malgn.domain.document.repository.query.DocumentApprovalHistoryQueryRepository;
@@ -85,8 +80,7 @@ public class DocumentApprovalHistoryQueryRepositoryImpl implements DocumentAppro
             builder.and(eqUserUniqueId(searchV1Request.userUniqueId()))
                 .and(eqStatus(searchV1Request.status()))
                 .and(goeCreatedDateFrom(searchV1Request.createdDateFrom()))
-                .and(loeCreatedDateTo(searchV1Request.createdDateTo()))
-                .and(document.status.notIn(DocumentStatus.CANCELLED));
+                .and(loeCreatedDateTo(searchV1Request.createdDateTo()));
         }
 
         return builder;
@@ -97,7 +91,17 @@ public class DocumentApprovalHistoryQueryRepositoryImpl implements DocumentAppro
     }
 
     private BooleanExpression eqStatus(ApprovalStatus status) {
-        return status != null ? documentApprovalHistory.status.eq(status) : null;
+
+        if (status == null) {
+            return null;
+        }
+
+        if (status == ApprovalStatus.WAITING) {
+            return documentApprovalHistory.status.eq(ApprovalStatus.WAITING)
+                .and(document.status.notIn(DocumentStatus.CANCELLED));
+        }
+
+        return documentApprovalHistory.status.eq(status);
     }
 
     private BooleanExpression goeCreatedDateFrom(LocalDate fromDate) {
