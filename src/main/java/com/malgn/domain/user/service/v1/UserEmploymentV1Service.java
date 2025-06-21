@@ -1,5 +1,7 @@
 package com.malgn.domain.user.service.v1;
 
+import static com.malgn.domain.user.model.v1.UserEmploymentV1Response.*;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.malgn.common.exception.NotFoundException;
 import com.malgn.domain.user.entity.UserEmployment;
 import com.malgn.domain.user.model.SearchUserEmploymentRequest;
 import com.malgn.domain.user.model.UserEmploymentResponse;
@@ -29,5 +32,15 @@ public class UserEmploymentV1Service implements UserEmploymentService {
         Page<UserEmployment> result = userEmploymentRepository.search(searchRequest, pageable);
 
         return result.map(UserEmploymentV1Response::from);
+    }
+
+    @Override
+    public UserEmploymentResponse getEmploymentByUserId(String userUniqueId) {
+
+        UserEmployment userEmployment =
+            userEmploymentRepository.findByUserUniqueId(userUniqueId)
+                .orElseThrow(() -> new NotFoundException(UserEmployment.class, userUniqueId));
+
+        return from(userEmployment);
     }
 }

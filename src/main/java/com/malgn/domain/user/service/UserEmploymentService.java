@@ -10,4 +10,6 @@ public interface UserEmploymentService {
 
     Page<UserEmploymentResponse> search(SearchUserEmploymentRequest searchRequest, Pageable pageable);
 
+    UserEmploymentResponse getEmploymentByUserId(String userUniqueId);
+
 }
