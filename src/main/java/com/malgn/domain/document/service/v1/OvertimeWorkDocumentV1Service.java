@@ -163,15 +163,26 @@ public class OvertimeWorkDocumentV1Service implements OvertimeWorkDocumentServic
             report.append("점심 시간 적용: -1h");
         }
 
-        if (startDateTime.isAfter(workDate.atTime(DINNER_START_TIME)) &&
-            endDateTime.isBefore(workDate.atTime(DINNER_END_TIME))) {
-            workHours = workHours.subtract(BigDecimal.ONE);
-
-            report.append("저녁 시간 적용: -1h");
-        }
+        // if (startDateTime.isAfter(workDate.atTime(DINNER_START_TIME)) &&
+        //     endDateTime.isBefore(workDate.atTime(DINNER_END_TIME))) {
+        //     workHours = workHours.subtract(BigDecimal.ONE);
+        //
+        //     report.append("저녁 시간 적용: -1h");
+        // }
 
         // 총 시간
         report.append("근무 시간: ").append(workHours).append("\n");
+
+        // 초과 근무 적용
+        BigDecimal overHoursResult = BigDecimal.ZERO;
+
+        if (workHours.compareTo(BigDecimal.valueOf(STANDARD_WORK_HOURS)) > 0) {
+            BigDecimal overHours = workHours.subtract(BigDecimal.valueOf(STANDARD_WORK_HOURS));
+            overHoursResult = overHours.multiply(BigDecimal.valueOf(0.5));
+            report.append("초과 근무: ").append(overHours).append(" * 0.5 = ").append(overHoursResult).append("\n");
+
+            // workHours = workHours.add(result);
+        }
 
         // 휴일 시간 적용
         BigDecimal holyDayWorkHours = workHours.multiply(BigDecimal.valueOf(0.5));
@@ -219,14 +230,7 @@ public class OvertimeWorkDocumentV1Service implements OvertimeWorkDocumentServic
             workHours = workHours.add(result);
         }
 
-        // 초과 근무 적용
-        if (workHours.compareTo(BigDecimal.valueOf(STANDARD_WORK_HOURS)) > 0) {
-            BigDecimal overHours = workHours.subtract(BigDecimal.valueOf(STANDARD_WORK_HOURS));
-            BigDecimal result = overHours.multiply(BigDecimal.valueOf(0.5));
-            report.append("초과 근무: ").append(overHours).append(" * 0.5 = ").append(result).append("\n");
-
-            workHours = workHours.add(result);
-        }
+        workHours = workHours.add(overHoursResult);
 
         report.append("총: ").append(workHours);
 
