@@ -179,7 +179,7 @@ public class OvertimeWorkDocumentV1Service implements OvertimeWorkDocumentServic
             BigDecimal result = overHours.multiply(BigDecimal.valueOf(0.5));
             report.append("초과 근무: ").append(overHours).append(" * 0.5 = ").append(result).append("\n");
 
-            workHours = workHours.add(result);
+            // workHours = workHours.add(result);
         }
 
         // 휴일 시간 적용
