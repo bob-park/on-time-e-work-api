@@ -59,7 +59,7 @@ public class DocumentV1Service implements DocumentService {
             DocumentV1Request.builder()
                 .documentId(id.getValue())
                 .documentType(document.getType())
-                .teamId(user.team().id())
+                .teamId(user.group().id())
                 .build());
 
         return from(document);
