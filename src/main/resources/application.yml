@@ -98,7 +98,7 @@ malgn:
 e-work:
   user:
     cron:
-      generate-users-leave-days: ${generate_users_leave_days_cron:0 5 0 1 1 *}
+      generate-users-leave-days: ${generate_users_leave_days_cron:0 5 0 * * *}
 
 ## logging
 logging:

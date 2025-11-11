@@ -103,4 +103,8 @@ public class UserLeaveEntry extends BaseTimeEntity<Long> {
     public void restoreTotalCompLeaveDays(BigDecimal restoreDays) {
         this.totalCompLeaveDays = getTotalCompLeaveDays().subtract(restoreDays);
     }
+
+    public void updateTotalCompLeaveDays(BigDecimal totalCompLeaveDays) {
+        this.totalCompLeaveDays = totalCompLeaveDays;
+    }
 }

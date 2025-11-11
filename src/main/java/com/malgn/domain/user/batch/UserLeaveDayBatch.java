@@ -42,49 +42,76 @@ public class UserLeaveDayBatch {
 
         LocalDate now = LocalDate.now();
 
-        for (UserEmployment userEmployment : userEmployments) {
+        // 내년 까지 계산하여 추가
+        List<Integer> years = List.of(now.getYear(), now.getYear() + 1);
 
-            UserLeaveEntry userLeaveEntry =
-                userLeaveEntryRepository.getLeaveEntry(userEmployment.getUserUniqueId(), now.getYear())
-                    .orElseGet(() -> {
+        for (Integer year : years) {
+            for (UserEmployment userEmployment : userEmployments) {
 
-                        // 작년 대체 휴가(Compensatory Leave) 가 있는 지 확인
-                        BigDecimal prevCompLeaveBalance = BigDecimal.ZERO;
+                UserLeaveEntry userLeaveEntry =
+                    userLeaveEntryRepository.getLeaveEntry(userEmployment.getUserUniqueId(), year)
+                        .orElseGet(() -> {
 
-                        UserLeaveEntry prevUserLeaveEntry =
-                            userLeaveEntryRepository.getLeaveEntry(userEmployment.getUserUniqueId(), now.getYear() - 1)
-                                .orElse(null);
+                            // 작년 대체 휴가(Compensatory Leave) 가 있는 지 확인
+                            BigDecimal prevCompLeaveBalance = BigDecimal.ZERO;
 
-                        if (isNotEmpty(prevUserLeaveEntry)) {
-                            BigDecimal total = prevUserLeaveEntry.getTotalCompLeaveDays();
-                            BigDecimal used = prevUserLeaveEntry.getUsedCompLeaveDays();
+                            UserLeaveEntry prevUserLeaveEntry =
+                                userLeaveEntryRepository.getLeaveEntry(userEmployment.getUserUniqueId(), year - 1)
+                                    .orElse(null);
 
-                            prevCompLeaveBalance = total.subtract(used);
-                        }
+                            if (isNotEmpty(prevUserLeaveEntry)) {
+                                BigDecimal total = prevUserLeaveEntry.getTotalCompLeaveDays();
+                                BigDecimal used = prevUserLeaveEntry.getUsedCompLeaveDays();
 
-                        // 금년 휴가 정보 생성
-                        Period between = Period.between(userEmployment.getEffectiveDate().toLocalDate(), now);
-                        int userContinuousYears = between.getYears();
+                                prevCompLeaveBalance = total.subtract(used);
+                            }
 
-                        int totalLeaveDays = decideTotalLeaveDays(policies, userContinuousYears);
+                            // 금년 휴가 정보 생성
+                            Period between = Period.between(userEmployment.getEffectiveDate().toLocalDate(), LocalDate.of(year, 1,1));
+                            int userContinuousYears = between.getYears();
 
-                        UserLeaveEntry createdLeaveEntry =
-                            UserLeaveEntry.builder()
-                                .userUniqueId(userEmployment.getUserUniqueId())
-                                .year(now.getYear())
-                                .totalLeaveDays(BigDecimal.valueOf(totalLeaveDays))
-                                .totalCompLeaveDays(prevCompLeaveBalance)
-                                .build();
+                            int totalLeaveDays = decideTotalLeaveDays(policies, userContinuousYears);
 
-                        createdLeaveEntry = userLeaveEntryRepository.save(createdLeaveEntry);
+                            UserLeaveEntry createdLeaveEntry =
+                                UserLeaveEntry.builder()
+                                    .userUniqueId(userEmployment.getUserUniqueId())
+                                    .year(year)
+                                    .totalLeaveDays(BigDecimal.valueOf(totalLeaveDays))
+                                    .totalCompLeaveDays(prevCompLeaveBalance)
+                                    .build();
 
-                        log.debug("created user leave entry: {}", createdLeaveEntry);
+                            createdLeaveEntry = userLeaveEntryRepository.save(createdLeaveEntry);
 
-                        return createdLeaveEntry;
-                    });
+                            log.debug("created user leave entry: {}", createdLeaveEntry);
 
-            log.debug("batched user leave entry: {}", userLeaveEntry);
+                            return createdLeaveEntry;
+                        });
 
+                // 내년인 경우에만 prev comp leave days 갱신
+                if (year == now.getYear() + 1) {
+
+                    // 작년 대체 휴가(Compensatory Leave) 가 있는 지 확인
+                    BigDecimal prevCompLeaveBalance = BigDecimal.ZERO;
+
+                    UserLeaveEntry prevUserLeaveEntry =
+                        userLeaveEntryRepository.getLeaveEntry(userEmployment.getUserUniqueId(), year - 1)
+                            .orElse(null);
+
+                    if (isNotEmpty(prevUserLeaveEntry)) {
+                        BigDecimal total = prevUserLeaveEntry.getTotalCompLeaveDays();
+                        BigDecimal used = prevUserLeaveEntry.getUsedCompLeaveDays();
+
+                        prevCompLeaveBalance = total.subtract(used);
+                    }
+
+                    userLeaveEntry.updateTotalCompLeaveDays(prevCompLeaveBalance);
+
+                    log.debug("updated user leave entry: {}", userLeaveEntry);
+                }
+
+                log.debug("batched user leave entry: {}", userLeaveEntry);
+
+            }
         }
 
     }
