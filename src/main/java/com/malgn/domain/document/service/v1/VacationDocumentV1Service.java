@@ -14,11 +14,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.collect.Lists;
 
 import com.malgn.common.exception.NotFoundException;
 import com.malgn.common.exception.NotSupportException;
@@ -32,6 +35,8 @@ import com.malgn.domain.document.model.CreateVacationDocumentRequest;
 import com.malgn.domain.document.model.SearchVacationDocumentRequest;
 import com.malgn.domain.document.model.VacationDocumentResponse;
 import com.malgn.domain.document.model.v1.CreateVacationDocumentV1Request;
+import com.malgn.domain.document.model.v1.SearchDocumentV1Request;
+import com.malgn.domain.document.model.v1.SearchVacationDocumentV1Request;
 import com.malgn.domain.document.model.v1.UsedCompLeaveEntryV1Request;
 import com.malgn.domain.document.model.v1.VacationDocumentV1Response;
 import com.malgn.domain.document.repository.VacationDocumentRepository;
@@ -41,6 +46,7 @@ import com.malgn.domain.user.entity.UserLeaveEntry;
 import com.malgn.domain.user.entity.UserVacationUsedCompLeave;
 import com.malgn.domain.user.feign.UserFeignClient;
 import com.malgn.domain.user.model.UserResponse;
+import com.malgn.domain.user.model.UserSearchRequest;
 import com.malgn.domain.user.repository.UserCompLeaveEntryRepository;
 import com.malgn.domain.user.repository.UserLeaveEntryRepository;
 import com.malgn.domain.user.repository.UserVacationUsedCompLeaveRepository;
@@ -173,7 +179,21 @@ public class VacationDocumentV1Service implements VacationDocumentService {
     @Override
     public Page<VacationDocumentResponse> search(SearchVacationDocumentRequest searchRequest, Pageable pageable) {
 
-        Page<VacationDocument> result = vacationDocumentRepository.search(searchRequest, pageable);
+        SearchVacationDocumentV1Request searchRequestV1 = (SearchVacationDocumentV1Request)searchRequest;
+
+        List<String> userIds =
+            userClient.getAll(UserSearchRequest.builder().isDeleted(false).build(), PageRequest.of(0, 100))
+                .content()
+                .stream()
+                .map(UserResponse::id)
+                .toList();
+
+        Page<VacationDocument> result =
+            vacationDocumentRepository.search(
+                searchRequestV1.toBuilder()
+                    .userUniqueIds(userIds)
+                    .build(),
+                pageable);
 
         return result.map(VacationDocumentV1Response::from);
     }

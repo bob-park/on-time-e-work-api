@@ -82,7 +82,8 @@ public class VacationDocumentQueryRepositoryImpl implements VacationDocumentQuer
                 .and(eqStatus(searchV1Request.status()))
                 .and(eqVacationType(searchV1Request.vacationType()))
                 .and(goeStartDateFrom(searchV1Request.startDateFrom()))
-                .and(loeEndDateTo(searchV1Request.endDateTo()));
+                .and(loeEndDateTo(searchV1Request.endDateTo()))
+                .and(eqUserUniqueIds(searchV1Request.userUniqueIds()));
 
         }
 
@@ -91,6 +92,10 @@ public class VacationDocumentQueryRepositoryImpl implements VacationDocumentQuer
 
     private BooleanExpression eqUserUniqueId(String id) {
         return StringUtils.isNotBlank(id) ? vacationDocument.userUniqueId.eq(id) : null;
+    }
+
+    private BooleanExpression eqUserUniqueIds(List<String> ids) {
+        return !ids.isEmpty() ? vacationDocument.userUniqueId.in(ids) : null;
     }
 
     private BooleanExpression eqStatus(DocumentStatus status) {
