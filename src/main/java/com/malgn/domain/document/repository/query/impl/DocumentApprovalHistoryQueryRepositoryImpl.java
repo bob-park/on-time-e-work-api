@@ -80,7 +80,8 @@ public class DocumentApprovalHistoryQueryRepositoryImpl implements DocumentAppro
             builder.and(eqUserUniqueId(searchV1Request.userUniqueId()))
                 .and(eqStatus(searchV1Request.status()))
                 .and(goeCreatedDateFrom(searchV1Request.createdDateFrom()))
-                .and(loeCreatedDateTo(searchV1Request.createdDateTo()));
+                .and(loeCreatedDateTo(searchV1Request.createdDateTo()))
+                .and(eqExistUserIds(searchV1Request.existUserIds()));
         }
 
         return builder;
@@ -88,6 +89,10 @@ public class DocumentApprovalHistoryQueryRepositoryImpl implements DocumentAppro
 
     private BooleanExpression eqUserUniqueId(String userUniqueId) {
         return StringUtils.isNotBlank(userUniqueId) ? approvalLine.userUniqueId.eq(userUniqueId) : null;
+    }
+
+    private BooleanExpression eqExistUserIds(List<String> existUserIds) {
+        return !existUserIds.isEmpty() ? documentApprovalHistory.document.userUniqueId.in(existUserIds) : null;
     }
 
     private BooleanExpression eqStatus(ApprovalStatus status) {

@@ -3,10 +3,13 @@ package com.malgn.domain.document.service.v1;
 import static com.google.common.base.Preconditions.*;
 import static com.malgn.domain.document.model.v1.DocumentApprovalHistoryV1Response.*;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +26,15 @@ import com.malgn.domain.document.model.RejectDocumentRequest;
 import com.malgn.domain.document.model.SearchDocumentApprovalHistoryRequest;
 import com.malgn.domain.document.model.v1.DocumentApprovalHistoryV1Response;
 import com.malgn.domain.document.model.v1.RejectDocumentV1Request;
+import com.malgn.domain.document.model.v1.SearchDocumentApprovalHistoryV1Request;
+import com.malgn.domain.document.model.v1.SearchVacationDocumentV1Request;
 import com.malgn.domain.document.processor.DelegatingApprovalProcessor;
 import com.malgn.domain.document.repository.DocumentApprovalHistoryRepository;
 import com.malgn.domain.document.service.DocumentApprovalHistoryService;
 import com.malgn.domain.user.exception.OverLeaveEntryException;
+import com.malgn.domain.user.feign.UserFeignClient;
+import com.malgn.domain.user.model.UserResponse;
+import com.malgn.domain.user.model.UserSearchRequest;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,6 +43,8 @@ import com.malgn.domain.user.exception.OverLeaveEntryException;
 public class DocumentApprovalHistoryV1Service implements DocumentApprovalHistoryService {
 
     private final DelegatingApprovalProcessor processor;
+
+    private final UserFeignClient userClient;
 
     private final DocumentApprovalHistoryRepository documentApprovalHistoryRepository;
 
@@ -52,7 +62,21 @@ public class DocumentApprovalHistoryV1Service implements DocumentApprovalHistory
     public Page<DocumentApprovalHistoryResponse> search(SearchDocumentApprovalHistoryRequest searchRequest,
         Pageable pageable) {
 
-        Page<DocumentApprovalHistory> result = documentApprovalHistoryRepository.search(searchRequest, pageable);
+        SearchDocumentApprovalHistoryV1Request searchRequestV1 = (SearchDocumentApprovalHistoryV1Request)searchRequest;
+
+        List<String> userIds =
+            userClient.getAll(UserSearchRequest.builder().isDeleted(false).build(), PageRequest.of(0, 100))
+                .content()
+                .stream()
+                .map(UserResponse::id)
+                .toList();
+
+        Page<DocumentApprovalHistory> result =
+            documentApprovalHistoryRepository.search(
+                searchRequestV1.toBuilder()
+                    .existUserIds(userIds)
+                    .build(),
+                pageable);
 
         return result.map(item -> DocumentApprovalHistoryV1Response.from(item, true));
     }
