@@ -41,6 +41,8 @@ out/
 application*dev.yml
 docker-compose*dev.yml
 gradle.properties
+.sdkmanrc
 
 ### history ###
 .history
+
