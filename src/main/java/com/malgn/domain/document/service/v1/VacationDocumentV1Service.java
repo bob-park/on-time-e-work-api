@@ -83,9 +83,9 @@ public class VacationDocumentV1Service implements VacationDocumentService {
         checkArgument(isNotEmpty(createV1Request.vacationType()), "vacationType must be provided.");
 
         String currentUserId = AuthUtils.getCurrentUserId();
-        UserResponse user = userClient.getById(createV1Request.userUniqueId());
+        // UserResponse user = userClient.getById(createV1Request.userUniqueId());
 
-        checkArgument(StringUtils.equals(currentUserId, user.userId()), "not match user and account.");
+        checkArgument(StringUtils.equals(currentUserId, createV1Request.userUniqueId()), "not match user and account.");
 
         BigDecimal usedDays =
             calculateUsedDate(
