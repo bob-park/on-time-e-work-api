@@ -21,7 +21,9 @@ import com.malgn.domain.document.provider.RequestDocumentProvider;
 import com.malgn.domain.document.provider.v1.DocumentV1Request;
 import com.malgn.domain.document.repository.DocumentRepository;
 import com.malgn.domain.document.service.DocumentService;
+import com.malgn.domain.team.model.TeamResponse;
 import com.malgn.domain.user.feign.UserFeignClient;
+import com.malgn.domain.user.model.UserGroupResponse;
 import com.malgn.domain.user.model.UserResponse;
 
 @Slf4j
@@ -54,12 +56,13 @@ public class DocumentV1Service implements DocumentService {
                 .orElseThrow(() -> new NotFoundException(id));
 
         UserResponse user = userClient.getById(document.getUserUniqueId());
+        TeamResponse group = user.groups().getFirst().group();
 
         requestProvider.request(
             DocumentV1Request.builder()
                 .documentId(id.getValue())
                 .documentType(document.getType())
-                .teamId(user.group().id())
+                .teamId(group.id())
                 .build());
 
         return from(document);

@@ -1,13 +1,13 @@
 package com.malgn.domain.user.model;
 
-import lombok.Builder;
+import java.util.List;
 
-import com.malgn.domain.team.model.TeamResponse;
+import lombok.Builder;
 
 @Builder
 public record UserResponse(String id,
                            String userId,
                            String username,
-                           TeamResponse group,
+                           List<UserGroupResponse> groups,
                            PositionResponse position) {
 }
